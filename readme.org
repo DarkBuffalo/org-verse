@@ -1,0 +1,47 @@
+#+title: verse.el
+#+language: fr
+
+
+#+HTML: <img src="images/Gen1-1.jpg" align="right">
+
+verse.el is a minor mode for orgmode to easily find bible references in your buffer and display the verse in a sidebar by clicking on the reference formatted as a button automatically by this package.
+
+* Installation
+** Straight
+#+begin_src emacs-lisp
+(use-package verse
+	:straight (:repo "DarkBuffalo/verse.el")
+	:init
+	(setq verse-directory "~/notes"
+				verse-db-table-name "biblefr"))
+#+end_src
+
+** Database
+the verses are in an sqlite database.
+
+#+begin_src sqlite
+CREATE TABLE biblefr (
+	book INTEGER NOT NULL,
+	chapter INTEGER NOT NULL,
+	nbverse INTEGER NOT NULL,
+	verse TEXT NOT NULL)
+#+end_src
+
+All you have to do is name  your database =bible.db= and place it in the
+home folder.
+
+if she has another name.
+
+#+begin_src emacs-lisp
+(setq verse--db-file-name "/yourdatabase.db")
+#+end_src 
+
+* GIF
+#+caption: Demo
+#+attr_latex: :width 300px
+[[file:images/demo.gif]]
+
+
+* TODOS [1/2]
+- [X] gif
+- [ ] define your canon
