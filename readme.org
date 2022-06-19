@@ -1,10 +1,10 @@
-#+title: verse.el
+#+title: org-verse.el
 #+language: fr
 
 
 #+HTML: <img src="images/Gen1-1.jpg" align="right">
 
-verse.el is a minor mode for orgmode to easily find bible references in your buffer and display the verse in a sidebar by clicking on the reference formatted as a button automatically by this package.
+org-verse is a minor mode for orgmode to easily find bible references in your buffer and display the verse in a sidebar by clicking on the reference formatted as a button automatically by this package.
 
 * Installation
 ** Straight
