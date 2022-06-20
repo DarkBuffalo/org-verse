@@ -647,4 +647,4 @@ See `display-buffer-in-side-window' for example options."
 
 
 (provide 'org-verse)
-;;; verse.el ends here
+;;; org-verse.el ends here
