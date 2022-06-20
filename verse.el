@@ -399,7 +399,7 @@ We can use this function to `interactive' without needing to call
                      ((hash-table-p collection) (gethash choice collection))
                      ((assoc-list-p collection) (alist-get choice collection def nil 'equal))
                      (t                         choice))))
-      (if (listp results) (first results) results))))
+      (if (listp results) (cl-first results) results))))
 
 (defun verse-completing-read-by (fn prompt list &rest args)
   "Apply FN to each element of LIST and prompt the user to select a resulting value.
