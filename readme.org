@@ -10,7 +10,7 @@ org-verse is a minor mode for orgmode to easily find bible references in your bu
 ** Straight
 #+begin_src emacs-lisp
 (use-package verse
-	:straight (:repo "DarkBuffalo/org-verse")
+	:straight (:host github :repo "DarkBuffalo/org-verse")
 	:init
 	(setq verse-directory "~/notes"
 				verse-db-table-name "biblefr"))
