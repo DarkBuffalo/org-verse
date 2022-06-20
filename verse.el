@@ -2,7 +2,7 @@
 ;; Author: Matthias David
 
 ;; Version: 0.0.2
-;; Package-Requires: ((emacs "27.1")(dash)(anaphora)(esqlite))
+;; Package-Requires: ((emacs "27.1")(dash)(anaphora)(esqlite)(s))
 
 ;; This file is NOT part of GNU Emacs.
 
