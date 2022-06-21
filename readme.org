@@ -42,6 +42,7 @@ if she has another name.
 [[file:images/demo.gif]]
 
 
-* TODOS [1/2]
+* TODOS [1/3]
 - [X] gif
 - [ ] define your canon
+- [ ] Fix regex verse , - (4:1 <> 4:13)

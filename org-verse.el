@@ -534,7 +534,7 @@ See `display-buffer-in-side-window' for example options."
 				;; insert verse
 				(insert (org-verse--db-get-verse (plist-get ref :book) (plist-get ref :chapter) (plist-get ref :verse))))
 
-			(insert "\n")
+			(insert "\n\n")
 			
 			;; FIXME insert backlinks
 			(if-let ((files (org-verse--grep-file-list refverse) ))
