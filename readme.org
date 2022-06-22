@@ -36,13 +36,19 @@ if she has another name.
 (setq org-verse--db-file-name "/yourdatabase.db")
 #+end_src 
 
-* GIF
+* Screenshots
 #+caption: Demo
 #+attr_latex: :width 300px
 [[file:images/demo.gif]]
 
+#+caption: Magit-section
+#+attr_latex: :width 300px
+[[file:images/magit-section.png]]
 
-* TODOS [1/3]
+
+
+* TODOS [1/4]
 - [X] gif
+- [ ] Fix magit-section "Cannot hide root section"
 - [ ] define your canon
 - [ ] Fix regex verse , - (4:1 <> 4:13)
