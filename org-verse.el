@@ -48,6 +48,7 @@
 (require 'esqlite)
 (require 's)
 
+(require 'magit-section)
 
 (defgroup verse nil
   "Highlight numbers in source code."
@@ -358,12 +359,16 @@ supplied. Can take a PROMPT argument."
 (defun org-verse--prepare-backlinks (files &optional title)
   "Prepare backlinks' including FILES.
 Use optional TITLE for a prettier heading."
-	(insert (propertize "-[ Backlinks ]- \n"  'face '(:foreground "#fff" :weight bold)))
-	(mapc (lambda (f)
-					(insert (propertize  (file-name-nondirectory f) 'face 'italic))
-					(make-button (point-at-bol) (point-at-eol) :type 'org-verse-link-backlink-button)
-					(newline))
-				files)
+	(magit-insert-section (backlinks)
+		(insert (propertize (format "%s\n" "Backlinks") 'face 'magit-section-heading))
+		(magit-insert-heading)
+		(mapc (lambda (f)
+						(insert (propertize  (file-name-nondirectory f) 'face 'italic))
+						(make-button (point-at-bol) (point-at-eol) :type 'org-verse-link-backlink-button)
+						(newline))
+					files)
+		)
+	
 	(goto-char (point-min)))
 
 
