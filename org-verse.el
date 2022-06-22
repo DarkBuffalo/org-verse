@@ -356,18 +356,22 @@ supplied. Can take a PROMPT argument."
   'face 'unspecified)
 
 
+(defclass org-verse-group-section (magit-section)
+  ((group :initform nil)))
+
 (defun org-verse--prepare-backlinks (files &optional title)
   "Prepare backlinks' including FILES.
 Use optional TITLE for a prettier heading."
-	(magit-insert-section (backlinks)
-		(insert (propertize (format "%s\n" "Backlinks") 'face 'magit-section-heading))
-		(magit-insert-heading)
+	(magit-insert-section backlinks (org-verse-group-section)
+		(magit-insert-heading
+			(insert (propertize (format "%s\n" "Backlinks") 'face 'magit-section-heading)))
+		
 		(mapc (lambda (f)
 						(insert (propertize  (file-name-nondirectory f) 'face 'italic))
 						(make-button (point-at-bol) (point-at-eol) :type 'org-verse-link-backlink-button)
 						(newline))
-					files)
-		)
+					files))
+	
 	
 	(goto-char (point-min)))
 
@@ -504,6 +508,7 @@ See `display-buffer-in-side-window' for example options."
   (with-current-buffer (get-buffer-create org-verse-buffer)
     ;;(org-verse-sidebar-refresh nil nil nil nil)
 		(local-set-key (kbd "q") 'org-verse-sidebar-quit)
+		(local-set-key (kbd "<tab>") 'magit-section-toggle)
     (current-buffer)))
 
 (defun org-verse-sidebar-create-window ()
@@ -542,7 +547,8 @@ See `display-buffer-in-side-window' for example options."
 			(insert "\n\n")
 			
 			;; FIXME insert backlinks
-			(if-let ((files (org-verse--grep-file-list refverse) ))
+			(if-let ((files (org-verse--grep-file-list refverse) )
+							 (inhibit-read-only t))
 					(org-verse--prepare-backlinks files)
 				(user-error "Pas de notes incluant ce verset")
 				(insert "Pas de notes incluant ce verset."))
