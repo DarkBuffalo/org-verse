@@ -37,10 +37,12 @@ if she has another name.
 #+end_src 
 
 * Screenshots
+** Demo
 #+caption: Demo
 #+attr_latex: :width 300px
 [[file:images/demo.gif]]
 
+** magit-section
 #+caption: Magit-section
 #+attr_latex: :width 300px
 [[file:images/magit-section.png]]

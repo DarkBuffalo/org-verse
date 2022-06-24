@@ -2,7 +2,7 @@
 ;; Author: Matthias David
 
 ;; Version: 0.0.2
-;; Package-Requires: ((emacs "27.1")(dash)(anaphora)(esqlite)(s))
+;; Package-Requires: ((emacs "27.1")(dash)(anaphora)(esqlite)(s)(db))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -47,6 +47,7 @@
 (require 'anaphora)
 (require 'esqlite)
 (require 's)
+(require 'db)
 
 (require 'magit-section)
 
@@ -71,6 +72,8 @@
   (getenv "HOME")
   "Path to user home directory.")
 
+
+;;;; Variables
 (defcustom org-verse-directory nil
   "Main verse directory."
   :type 'string)
@@ -78,6 +81,17 @@
 (defcustom org-verse-file-extension "org"
   "The extension for verse files."
   :type 'string)
+
+(defcustom org-verse-cache-dir (concat user-emacs-directory "orgverse/")
+  "Org-verse's cache directory."
+  :type 'directory
+  :group 'org-verse)
+
+(defvar org-verse-notes-db
+  (db-make
+   `(db-hash
+     :filename ,(concat org-verse-cache-dir "org-verse-notes-db")))
+  "Database for caching notes.")
 
 (defconst org-verse-lexical
   '((org-verse-search-for-verse
@@ -225,7 +239,7 @@ It is used when no mode-specific one is available.")
 (org-verse-add-book '((rx (or "Job" "Jb"))) "Jb" "Job" 18  '((1 . 22) (2 . 13) (3 . 26) (4 . 21) (5 . 27) (6 . 30) (7 . 21) (8 . 22) (9 . 35) (10 . 22) (11 . 20) (12 . 25) (13 . 28) (14 . 22) (15 . 35) (16 . 22) (17 . 16) (18 . 21) (19 . 29) (20 . 29) (21 . 34) (22 . 30) (23 . 17) (24 . 25) (25 . 6) (26 . 14) (27 . 23) (28 . 28) (29 . 25) (30 . 31) (31 . 40) (32 . 22) (33 . 33) (34 . 37) (35 . 16) (36 . 33) (37 . 24) (38 . 41) (39 . 30) (40 . 24) (41 . 34) (42 . 17)))
 (org-verse-add-book '((rx (or "Psaumes" "Ps"))) "Ps" "Psaumes" 19  '((1 . 6) (2 . 12) (3 . 8) (4 . 8) (5 . 12) (6 . 10) (7 . 17) (8 . 9) (9 . 20) (10 . 18) (11 . 7) (12 . 8) (13 . 6) (14 . 7) (15 . 5) (16 . 11) (17 . 15) (18 . 50) (19 . 14) (20 . 9) (21 . 13) (22 . 31) (23 . 6) (24 . 10) (25 . 22) (26 . 12) (27 . 14) (28 . 9) (29 . 11) (30 . 12) (31 . 24) (32 . 11) (33 . 22) (34 . 22) (35 . 28) (36 . 12) (37 . 40) (38 . 22) (39 . 13) (40 . 17) (41 . 13) (42 . 11) (43 . 5) (44 . 26) (45 . 17) (46 . 11) (47 . 9) (48 . 14) (49 . 20) (50 . 23) (51 . 19) (52 . 9) (53 . 6) (54 . 7) (55 . 23) (56 . 13) (57 . 11) (58 . 11) (59 . 17) (60 . 12) (61 . 8) (62 . 12) (63 . 11) (64 . 10) (65 . 13) (66 . 20) (67 . 7) (68 . 35) (69 . 36) (70 . 5) (71 . 24) (72 . 20) (73 . 28) (74 . 23) (75 . 10) (76 . 12) (77 . 20) (78 . 72) (79 . 13) (80 . 19) (81 . 16) (82 . 8) (83 . 18) (84 . 12) (85 . 13) (86 . 17) (87 . 7) (88 . 18) (89 . 52) (90 . 17) (91 . 16) (92 . 15) (93 . 5) (94 . 23) (95 . 11) (96 . 13) (97 . 12) (98 . 9) (99 .  9) (100 . 5) (101 . 8) (102 . 28) (103 . 22) (104 . 35) (105 . 45) (106 . 48) (107 . 43) (108 . 13) (109 . 31) (110 . 7) (111 . 10) (112 . 10) (113 . 9) (114 . 8) (115 . 18) (116 . 19) (117 . 2) (118. 29) (119 . 176) (120 . 7) (121 . 8) (122 . 9) (123 . 4) (124 . 8) (125 . 5) (126 . 6) (127 . 5) (128 . 6) (129 . 8) (130 . 8) (131 . 3) (132 . 18) (133 . 3) (134 . 3) (135 . 21) (136 . 26) (137 . 9) (138 . 8) (139 . 24) (140 . 13) (141 . 10) (142 . 7) (143 . 12) (144 . 15) (145 . 21) (146 . 10) (147 . 20) (148 . 14) (149 . 9) (150 . 6)))
 (org-verse-add-book '((rx (or "Proverbes" "Prov" "Pro" "Pr"))) "Pr" "Proverbes" 20  '((1 . 3) (2 . 22) (3 . 35) (4 . 27) (5 . 23) (6 . 35) (7 . 27) (8 . 36) (9 . 18) (10 . 32) (11 . 31) (12 . 28) (13 . 25) (14 . 35) (15 . 33) (16 . 33) (17 . 28) (18 . 24) (19 . 29) (20 . 30) (21 . 31) (22 . 29) (23 . 35) (24 . 34) (25 . 28) (26 . 28) (27 . 27) (28 . 28) (29 . 27) (30 . 33) (31 . 31)))
-(org-verse-add-book '((rx (or "Ecclésiaste" "Ecc" "Ec" "Ecl"))) "Ec" "Ecclésiastes" 21  '((1 . 18) (2 . 26) (3 . 22) (4 . 16) (5 . 20) (6 . 12) (7 . 29) (8 . 17) (9 . 18) (10 . 20) (11 . 10) (12 . 14)))
+(org-verse-add-book '((rx (or "Ecclésiaste" "Ecc" "Ec" "Ecl"))) "Ec" "Ecclésiaste" 21  '((1 . 18) (2 . 26) (3 . 22) (4 . 16) (5 . 20) (6 . 12) (7 . 29) (8 . 17) (9 . 18) (10 . 20) (11 . 10) (12 . 14)))
 (org-verse-add-book '((rx (or "Chant de Salomon" "Ct"))) "Ct" "Chant de Salomon" 22  '((1 . 17) (2 . 17) (3 . 11) (4 . 16) (5 . 16) (6 . 13) (7 . 13) (8. 14)))
 (org-verse-add-book '((rx (or "Isaïe" "Is"))) "Is" "Isaïe" 23  '((1 . 31) (2 . 22) (3 . 26) (4 . 6) (5 . 30) (6 . 13) (7 . 25) (8 . 22) (9 . 21) (10 . 34) (11 . 16) (12 . 6) (13 . 22) (14 . 32) (15 . 9) (16 . 14) (17 . 14) (18 . 7) (19 . 25) (20 . 6) (21 . 17) (22 . 25) (23 . 18) (24 . 23) (25 . 12) (26 . 21) (27 . 13) (28 . 29) (29 . 24) (30 . 33) (31 . 9) (32 . 20) (33 . 24) (34 . 17) (35 . 10) (36 . 22) (37 . 38) (38 . 22) (39 . 8) (40 . 31) (41 . 29) (42 . 25) (43 . 28) (44 . 28) (45 . 25) (46 . 13) (47 . 15) (48 . 22) (49 . 26) (50 . 11) (51 . 23) (52 . 15) (53 . 12) (54 . 17) (55 . 13) (56 . 12) (57 . 21) (58 . 14) (59 . 21) (60 . 22) (61 . 11) (62 . 12) (63 . 19) (64 . 12) (65 . 25) (66 . 24)))
 (org-verse-add-book '((rx (or "Jérémie" "Jer" "Jr"))) "Jr" "Jérémie" 24  '((1 . 19) (2 . 37) (3 . 25) (4 . 31) (5 . 31) (6 . 30) (7 . 34) (8 . 22) (9 . 26) (10 . 25) (11 . 23) (12 . 17) (13 . 27) (14 . 22) (15 . 21) (16 . 21) (17 . 27) (18 . 23) (19 . 15) (20 . 18) (21 . 14) (22 . 30) (23 . 40) (24 . 10) (25 . 38) (26 . 24) (27 . 22) (28 . 17) (29 . 32) (30 . 24) (31 . 40) (32 . 44) (33 . 26) (34 . 22) (35 . 19) (36 . 32) (37 . 21) (38 . 28) (39 . 18) (40 . 16) (41 . 18) (42 . 22) (43 . 13) (44 . 30) (45 . 5) (46 . 28) (47 . 7) (48 . 47) (49 . 39) (50 . 46) (51 . 64) (52 . 34)))
@@ -298,7 +312,7 @@ Must take an optional prompt and a list of files"
 
 (defun org-verse--select-file (&optional prompt list)
   "Wrapper around `completing-read' to select org-verse-file.
-Offers candidates from 'org-verse--directory-files', or from LIST when
+Offers candidates from 'org-verse-directory', or from LIST when
 supplied. Can take a PROMPT argument."
   (let* ((files (if list list
                   ;;(org-verse--directory-files t)
@@ -657,5 +671,11 @@ See `display-buffer-in-side-window' for example options."
 (add-hook 'org-mode-hook 'org-verse-mode)
 
 
+
+;;package bootstrap
 (provide 'org-verse)
+
+(cl-eval-when (load eval)
+	(require 'org-verse-capture))
+
 ;;; org-verse.el ends here
