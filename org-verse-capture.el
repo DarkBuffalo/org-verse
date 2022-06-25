@@ -26,25 +26,18 @@
 (require 'org-verse)
 
 (defun* add-org-capture-templates (&rest project-spec)
-            "Add org project."
-            (add-to-list 'org-capture-templates project-spec t))
+  "Add org project."
+  (add-to-list 'org-capture-templates project-spec t))
 
 
 (add-org-capture-templates
  "v" "Org Verse")
 
-(push '("v" "Org Verse")
-      org-capture-templates)
-
-(push '("vn" "Org Verse Note"
-        entry
-        (file+headline (org-verse-notes-f) "Tasks")
-        "* TODO  %?\t\t\t%T\n %i\n Link: %l\n")
-      org-capture-templates)
-
-(defun org-verse-notes-f
-    (concat org-verse-directory "notes.org"))
-    
+(add-org-capture-templates
+ "vn" "Org verse note"
+ 'entry `(file+headline ,(expand-file-name "notes.org" org-verse-directory) "Notes")
+ "* %? %^g\n %i\n [%a]\n"
+ :empty-lines 1)
 
 (provide 'org-verse-capture)
 ;;; org-verse-capture.el ends here

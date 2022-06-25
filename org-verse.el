@@ -370,24 +370,27 @@ supplied. Can take a PROMPT argument."
   'face 'unspecified)
 
 
-(defclass org-verse-group-section (magit-section)
-  ((group :initform nil)))
-
 (defun org-verse--prepare-backlinks (files &optional title)
   "Prepare backlinks' including FILES.
 Use optional TITLE for a prettier heading."
-	(magit-insert-section backlinks (org-verse-group-section)
+	
+	(magit-insert-section (backlinks t)
 		(magit-insert-heading
 			(insert (propertize (format "%s\n" "Backlinks") 'face 'magit-section-heading)))
 		
-		(mapc (lambda (f)
-						(insert (propertize  (file-name-nondirectory f) 'face 'italic))
-						(make-button (point-at-bol) (point-at-eol) :type 'org-verse-link-backlink-button)
-						(newline))
-					files))
-	
-	
-	(goto-char (point-min)))
+		(magit-insert-section-body
+			(mapc (lambda (f)
+							(insert (propertize  (file-name-nondirectory f) 'face 'italic))
+							(make-button (point-at-bol) (point-at-eol) :type 'org-verse-link-backlink-button)
+							(newline))
+						files))))
+
+(defun org-verse--prepare-notes ()
+  "Prepare notes' including links."
+	(magit-insert-section (notes)
+		(magit-insert-heading
+			(insert (propertize (format "%s" "Notes") 'face 'magit-section-heading)))
+		(magit-insert-section-body (insert (format "%s" "Notes")))))
 
 
 ;; COMPLETION -------------------------------------------------------------------------------
@@ -520,9 +523,8 @@ See `display-buffer-in-side-window' for example options."
 (defun org-verse-sidebar-create-buffer ()
   "Return verse sidebar buffer."
   (with-current-buffer (get-buffer-create org-verse-buffer)
-    ;;(org-verse-sidebar-refresh nil nil nil nil)
 		(local-set-key (kbd "q") 'org-verse-sidebar-quit)
-		(local-set-key (kbd "<tab>") 'magit-section-toggle)
+		;;(local-set-key (kbd "<tab>") 'magit-section-toggle)
     (current-buffer)))
 
 (defun org-verse-sidebar-create-window ()
@@ -548,27 +550,34 @@ See `display-buffer-in-side-window' for example options."
   "Refresh the sidebar with REFVERSE, BOOK, CHAPTER and VERSES."
   (with-current-buffer org-verse-buffer
     (with-silent-modifications
-      (setq header-line-format (list :propertize "VERSET" 'face 'bold))
-      (erase-buffer)
-      ;;(toggle-truncate-lines 0)
+			(setq header-line-format (list :propertize "VERSET" 'face 'bold))
+			(erase-buffer)
 			(visual-line-mode 1)
-      (insert (propertize (format "%s\n" refverse) 'face 'bold))
 			
-			(let ((ref (org-verse--serialize book chapter verses)))
-				;; insert verse
-				(insert (org-verse--db-get-verse (plist-get ref :book) (plist-get ref :chapter) (plist-get ref :verse))))
-
-			(insert "\n\n")
-			
-			;; FIXME insert backlinks
-			(if-let ((files (org-verse--grep-file-list refverse) )
-							 (inhibit-read-only t))
-					(org-verse--prepare-backlinks files)
-				(user-error "Pas de notes incluant ce verset")
-				(insert "Pas de notes incluant ce verset."))
-			
-      (read-only-mode))
-    (goto-char (point-min))))
+			(let ((ref (org-verse--serialize book chapter verses))
+						(inhibit-read-only t))
+				
+				(magit-insert-section (root)
+					(magit-insert-section (verse)
+						(magit-insert-heading
+							(insert (propertize (format "%s\n" refverse) 'face 'magit-section-heading)))
+						
+						(magit-insert-section-body
+							;; insert verse
+							(insert (org-verse--db-get-verse (plist-get ref :book) (plist-get ref :chapter) (plist-get ref :verse)))))
+					
+					(insert "\n\n")
+					
+					(if-let ((files (org-verse--grep-file-list refverse)))
+							(org-verse--prepare-backlinks files)
+						(user-error "No refs with this verse"))
+					
+					(insert "\n")
+					(org-verse--prepare-notes)
+					(insert "\n"))
+				
+				(read-only-mode)))
+		(goto-char (point-min))))
 
 (defun org-verse-sidebar-quit ()
   "Quit verse buffer."
@@ -671,11 +680,9 @@ See `display-buffer-in-side-window' for example options."
 (add-hook 'org-mode-hook 'org-verse-mode)
 
 
-
 ;;package bootstrap
 (provide 'org-verse)
 
 (cl-eval-when (load eval)
 	(require 'org-verse-capture))
-
 ;;; org-verse.el ends here
