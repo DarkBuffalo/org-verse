@@ -390,6 +390,17 @@ Use optional TITLE for a prettier heading."
 	(magit-insert-section (notes)
 		(magit-insert-heading
 			(insert (propertize (format "%s" "Notes") 'face 'magit-section-heading)))
+		;; (widget-create
+		;;  'push-button
+		;;  :action `(lambda (&rest ignore)
+		;; 						(org-verse-capture))
+		;;  :mouse-face 'highlight
+		;;  :help-echo "Click to create note."
+		;;  :button-prefix "["
+		;;  :button-suffix "]"
+		;;  :format "%[%t%]"
+		;;  "add note" )
+		;; (insert "\n")
 		(magit-insert-section-body (insert (format "%s" "Notes")))))
 
 
@@ -525,6 +536,7 @@ See `display-buffer-in-side-window' for example options."
   (with-current-buffer (get-buffer-create org-verse-buffer)
 		(local-set-key (kbd "q") 'org-verse-sidebar-quit)
 		;;(local-set-key (kbd "<tab>") 'magit-section-toggle)
+		(local-set-key (kbd "a") 'org-verse-capture)
     (current-buffer)))
 
 (defun org-verse-sidebar-create-window ()
@@ -546,6 +558,10 @@ See `display-buffer-in-side-window' for example options."
     (when org-verse-sidebar-select-window
       (select-window (get-buffer-window org-verse-buffer)))))
 
+(defvar-local org-verse-current-verse
+	nil
+	"Current verse open on sidebar for 'org-capture'.")
+
 (defun org-verse-sidebar-refresh (refverse book chapter verses)
   "Refresh the sidebar with REFVERSE, BOOK, CHAPTER and VERSES."
   (with-current-buffer org-verse-buffer
@@ -556,7 +572,7 @@ See `display-buffer-in-side-window' for example options."
 			
 			(let ((ref (org-verse--serialize book chapter verses))
 						(inhibit-read-only t))
-				
+				(setq org-verse-current-verse refverse) ; for org-capture
 				(magit-insert-section (root)
 					(magit-insert-section (verse)
 						(magit-insert-heading
@@ -595,7 +611,7 @@ See `display-buffer-in-side-window' for example options."
     
     ;; si buffer pas ouvert, ouvrir sinon mettre a jour
     (if (window-live-p (get-buffer-window org-verse-buffer))
-	(org-verse-sidebar-refresh refverse book chapter verses)
+				(org-verse-sidebar-refresh refverse book chapter verses)
       (org-verse-toggle-sidebar)
       (org-verse-sidebar-refresh refverse book chapter verses))))
 
