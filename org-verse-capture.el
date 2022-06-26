@@ -36,18 +36,49 @@
 		"essai"
 		))
 
-(defun* add-org-capture-templates (&rest project-spec)
-  "Add org project."
-  (add-to-list 'org-capture-templates project-spec t))
+(defun my/find-capture-headline ()
+	"Get my headline."
+	(let* ((buf (org-capture-get :original-buffer))
+		 		 (mavariable-local (buffer-local-value 'org-verse-current-verse buf)))
+		(org-find-exact-headline-in-buffer mavariable-local buf t)
+		;;mavariable-local
+		))
+
+(defun add-org-capture-templates (capture-templates)
+	"Add capture from CAPTURE-TEMPLATES."
+	(setq org-capture-templates
+				(append org-capture-templates
+								capture-templates)))
 
 (add-org-capture-templates
- "v" "Org Verse")
+ (doct `(("Org Verse" :keys "v"
+					:file capt-f
+					:headline '(nil-or-not)
+					:type entry
+					:children (("Org verse note" :keys "n"
+											:template ("* %?")))))))
 
-(add-org-capture-templates
- "vn" "Org verse note"
- 'entry `(file+headline ,(capt-f) ,(nil-or-not))
- "* %?"
- :empty-lines 1)
+;; (add-org-capture-templates
+;;  '(("v" "Org verse")
+;; 	 ("vn" "Org verse capture"
+;; 		entry
+;; 		(file+headline `,(concat org-verse-directory "note.org") ,(my/find-capture-headline))
+;; 		"* %?")))
+
+
+
+;; (defun* add-org-capture-templates (&rest project-spec)
+;;   "Add org project."
+;;   (add-to-list 'org-capture-templates project-spec t))
+
+;; (add-org-capture-templates
+;;  "v" "Org Verse")
+
+;; (add-org-capture-templates
+;;  "vn" "Org verse note"
+;;  'entry `(file+headline "~/Dropbox/00_SLIPBOX/theoc/notes.org" ,(my/find-capture-headline))
+;;  "* %?"
+;;  :empty-lines 1)
 
 (defun org-verse-capture ()
   "Capture verse."
