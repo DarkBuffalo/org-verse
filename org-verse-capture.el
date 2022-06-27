@@ -25,7 +25,7 @@
 ;;; Code:
 (require 'org-verse)
 
-(defun capt-f ()
+(defun org-verse-note-f ()
 	"Define capture file."
 	(expand-file-name "notes.org" org-verse-directory))
 
@@ -46,7 +46,7 @@
 	"Fonction de capture."
 	(let* ((buf (org-capture-get :original-buffer))
 				 (headline (buffer-local-value 'org-verse-current-verse buf))
-				 (file (find-file (expand-file-name "notes.org" org-verse-directory))))
+				 (file (find-file org-verse-note-f)))
 		(switch-to-buffer file)
 		(if (string= headline "")
 				(goto-char (point-max))
@@ -63,7 +63,7 @@
 
 (add-org-capture-templates
  (doct `(("Org Verse" :keys "v"
-					:file capt-f
+					:file org-verse-note-f
 					:function capture-get-destination-headline
 					:type entry
 					:children (("Org verse note"
