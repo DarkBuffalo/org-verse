@@ -353,7 +353,6 @@ supplied. Can take a PROMPT argument."
       (user-error "No results for \"%s\"" str))))
 
 
-
 ;; Backlinks
 
 (defvar org-verse-link-buton-action #'find-file-other-window
@@ -374,7 +373,7 @@ supplied. Can take a PROMPT argument."
   "Prepare backlinks' including FILES.
 Use optional TITLE for a prettier heading."
 	
-	(magit-insert-section (backlinks t)
+	(magit-insert-section (backlinks)
 		(magit-insert-heading
 			(insert (propertize (format "%s\n" "Backlinks") 'face 'magit-section-heading)))
 		
@@ -385,22 +384,19 @@ Use optional TITLE for a prettier heading."
 							(newline))
 						files))))
 
+(defun org-verse--no-backlinks ()
+  "No backlinks'."
+	(magit-insert-section (backlinks)
+		(magit-insert-heading
+			(insert (propertize (format "%s\n" "Backlinks") 'face 'magit-section-heading)))
+		(magit-insert-section-body
+			(insert "No refs with this verse."))))
+
 (defun org-verse--prepare-notes ()
   "Prepare notes' including links."
 	(magit-insert-section (notes)
 		(magit-insert-heading
 			(insert (propertize (format "%s" "Notes") 'face 'magit-section-heading)))
-		;; (widget-create
-		;;  'push-button
-		;;  :action `(lambda (&rest ignore)
-		;; 						(org-verse-capture))
-		;;  :mouse-face 'highlight
-		;;  :help-echo "Click to create note."
-		;;  :button-prefix "["
-		;;  :button-suffix "]"
-		;;  :format "%[%t%]"
-		;;  "add note" )
-		;; (insert "\n")
 		(magit-insert-section-body (insert (format "%s" "Notes")))))
 
 
@@ -586,7 +582,8 @@ See `display-buffer-in-side-window' for example options."
 					
 					(if-let ((files (org-verse--grep-file-list refverse)))
 							(org-verse--prepare-backlinks files)
-						(user-error "No refs with this verse"))
+						(org-verse--no-backlinks)
+						)
 					
 					(insert "\n")
 					(org-verse--prepare-notes)

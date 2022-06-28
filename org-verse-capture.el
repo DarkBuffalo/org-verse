@@ -46,7 +46,7 @@
 	"Fonction de capture."
 	(let* ((buf (org-capture-get :original-buffer))
 				 (headline (buffer-local-value 'org-verse-current-verse buf))
-				 (file (find-file org-verse-note-f)))
+				 (file (find-file (org-verse-note-f))))
 		(switch-to-buffer file)
 		(if (string= headline "")
 				(goto-char (point-max))
