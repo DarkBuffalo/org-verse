@@ -47,7 +47,7 @@
 (require 'anaphora)
 (require 'esqlite)
 (require 's)
-(require 'db)
+
 
 (require 'magit-section)
 
@@ -72,7 +72,6 @@
   (getenv "HOME")
   "Path to user home directory.")
 
-
 ;;;; Variables
 (defcustom org-verse-directory nil
   "Main verse directory."
@@ -82,16 +81,6 @@
   "The extension for verse files."
   :type 'string)
 
-(defcustom org-verse-cache-dir (concat user-emacs-directory "orgverse/")
-  "Org-verse's cache directory."
-  :type 'directory
-  :group 'org-verse)
-
-(defvar org-verse-notes-db
-  (db-make
-   `(db-hash
-     :filename ,(concat org-verse-cache-dir "org-verse-notes-db")))
-  "Database for caching notes.")
 
 (defconst org-verse-lexical
   '((org-verse-search-for-verse
@@ -697,5 +686,6 @@ See `display-buffer-in-side-window' for example options."
 (provide 'org-verse)
 
 (cl-eval-when (load eval)
-	(require 'org-verse-capture))
+	(require 'org-verse-capture)
+	(require 'org-verse-db))
 ;;; org-verse.el ends here
