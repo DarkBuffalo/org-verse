@@ -62,6 +62,7 @@
 		(goto-char (point-max))
 		(unless (bolp) (insert "\n"))
 		(insert "* " headline "\n")
+		(org-capture-put :verse headline)
 		(beginning-of-line 0)))
 
 (add-org-capture-templates
@@ -71,7 +72,7 @@
 					:type entry
 					:children (("Org verse note"
 											:keys "n"
-											:template ("* %?")))))))
+											:template ("* %? \n:PROPERTIES:\n:verse: %(org-capture-get :verse) \n:END:")))))))
 
 (defun org-verse-capture ()
   "Capture verse."
