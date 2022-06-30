@@ -35,12 +35,6 @@
 				(append org-capture-templates
 								capture-templates)))
 
-(defun my/find-capture-headline ()
-	"My headline."
-	(let* ((buf (org-capture-get :original-buffer))
-				 (mavariable-local (buffer-local-value 'org-verse-current-verse buf)))
-		(org-find-exact-headline-in-buffer mavariable-local buf t)))
-
 
 (defun capture-get-destination-headline ()
 	"Fonction de capture."
@@ -51,7 +45,6 @@
 		(if (string= headline "")
 				(goto-char (point-max))
 			(progn
-				(goto-char (point-min))
 				(if (re-search-forward (format org-complex-heading-regexp-format
 																			 (regexp-quote headline))
 															 nil t)
@@ -60,6 +53,17 @@
 					(unless (bolp) (insert "\n"))
 					(insert "* " headline "\n")
 					(beginning-of-line 0))))))
+
+(defun org-verse-create-headline (headline)
+	"Create headline from HEADLINE."
+	(if (re-search-forward (format org-complex-heading-regexp-format
+																 (regexp-quote headline))
+												 nil t)
+			(beginning-of-line)
+		(goto-char (point-max))
+		(unless (bolp) (insert "\n"))
+		(insert "* " headline "\n")
+		(beginning-of-line 0)))
 
 (add-org-capture-templates
  (doct `(("Org Verse" :keys "v"
