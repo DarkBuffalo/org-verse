@@ -2,8 +2,14 @@
 
 ;; Copyright (C) 2022  Matthias David
 
-;; Author: Matthias David <work@gnu.re>
-
+;; Author: Matthias David <darkbuffalo@gnu.re>
+;;          ______              __    _______        ___  ___       __
+;;         |   _  \ .---.-.----|  |--|   _   .--.--.’  _.’  _.---.-|  .-----.
+;;^_/-...-\_^  |   \|  _  |   _|    <|.  1   |  |  |   _|   _|  _  |  |  _  |
+;;\__/> o\__/  |    |___._|__| |__|__|.  _   |_____|__| |__| |___._|__|_____|
+;;   \   / |:  1    /                |:  1    \
+;;   (^_^) |::.. . /                 |::.. .  /
+;;         ‘------’                  ‘-------’
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -42,20 +48,13 @@
 				 (headline (buffer-local-value 'org-verse-current-verse buf))
 				 (file (find-file (org-verse-note-f))))
 		(switch-to-buffer file)
-		(if (string= headline "")
-				(goto-char (point-max))
-			(progn
-				(if (re-search-forward (format org-complex-heading-regexp-format
-																			 (regexp-quote headline))
-															 nil t)
-						(beginning-of-line)
-					(goto-char (point-max))
-					(unless (bolp) (insert "\n"))
-					(insert "* " headline "\n")
-					(beginning-of-line 0))))))
+		(if (string= headline nil) ;;appel de org-capture en dehors du sidebar
+				(org-verse-search-headline (org-verse-complete))
+			(org-verse-search-headline headline))))
 
-(defun org-verse-create-headline (headline)
+(defun org-verse-search-headline (headline)
 	"Create headline from HEADLINE."
+	(goto-char (point-min))
 	(if (re-search-forward (format org-complex-heading-regexp-format
 																 (regexp-quote headline))
 												 nil t)

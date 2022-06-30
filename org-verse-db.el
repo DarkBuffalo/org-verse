@@ -1,9 +1,9 @@
-;;; org-verse-db.el --- database                     -*- lexical-binding: t; -*-
+;;; org-verse-db.el --- Org-verse database functionality -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2022  Matthias David
 
 ;; Author: Matthias David <darkbuffalo@gnu.re>
-;; Keywords: 
+;; Keywords:
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

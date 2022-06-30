@@ -433,17 +433,16 @@ ARGS will be passed to `completing-read' after the PROMPT and COLLECTION argumen
 
 (defun org-verse-complete ()
   "Choose verse with completion."
-  (interactive)
   (let* ((book (org-verse-completing-read-by 'org-verse--book-name "Livre: " org-verse--canon))
-        (chapter (string-to-number (org-verse-completing-read "Chapitre: "
-                                                          (seq-map 'int-to-string
-                                                                   (mapcar 'car  (org-verse--book-verses book))))))
-        (verses (org-verse-completing-read "Verset: "
-                                       (seq-map 'int-to-string
-                                                (mapcan 'list
-                                                        (cl-loop for i from 1 to (cdr (assoc chapter (org-verse--book-verses book)))
-                                                                 collect i))))))
-    (insert (format "%s %s:%s" (org-verse--book-abbrev book) chapter verses))))
+         (chapter (string-to-number (org-verse-completing-read "Chapitre: "
+																															 (seq-map 'int-to-string
+																																				(mapcar 'car  (org-verse--book-verses book))))))
+         (verses (org-verse-completing-read "Verset: "
+																						(seq-map 'int-to-string
+																										 (mapcan 'list
+																														 (cl-loop for i from 1 to (cdr (assoc chapter (org-verse--book-verses book)))
+																																			collect i))))))
+		(format "%s %s:%s" (org-verse--book-abbrev book) chapter verses)))
 
 ;; DATABASE ESQLITE -----------------------------
 (defvar org-verse--db-file-name "/bible.db"
