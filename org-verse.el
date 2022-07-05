@@ -154,11 +154,19 @@
                    (or "Jude")
                    (or "Révélation" "Rév" "Ré" "Re" "Rv")))
        space
-       (group (1+ digit))
-       ":"
-       (group (or
-               (group (group(any digit))"-"(group (1+ digit)":"(1+ digit)))
-               (group (1+ (1+ digit )(0+ ","))))))
+       ;; (group-n 1 (1+ digit))
+       ;; ":"
+       ;; (group (or
+       ;;         (group (1+ digit)"-"(group (1+ digit)":"(1+ digit)))
+       ;;         (group (1+ (1+ digit )(0+ ",")))
+       ;;         (group (1+ digit )"-"(1+ digit))))
+			 (group (1+ digit)) ":"
+       (and
+				(group (1+ digit)
+							 (| (seq (0+ "-"(1+ digit) (optional ":" (1+ digit)))
+											 (seq (0+ ","(1+ digit)))))))
+
+			 )
   "Generic regexp for number highlighting.
 It is used when no mode-specific one is available.")
 
@@ -167,7 +175,7 @@ It is used when no mode-specific one is available.")
   "Match REGEX in buffer until LIMIT. Search is case-insensitive."
   (let (match-data-to-set
         found
-	;;insensitive
+				;;insensitive
         (case-fold-search t))
     (save-match-data
       (while (and (null match-data-to-set)
