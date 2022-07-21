@@ -27,7 +27,6 @@
 (require 'org-verse)
 (require 'db)
 
-
 (defcustom org-verse-cache-dir (concat user-emacs-directory "orgverse/")
   "Org-verse's cache directory."
   :type 'directory
@@ -38,7 +37,6 @@
    `(db-hash
      :filename ,(concat org-verse-cache-dir "org-verse-notes-db")))
   "Database for caching notes.")
-
 
 
 (provide 'org-verse-db)

@@ -32,47 +32,47 @@
 (require 'org-verse)
 
 (defun org-verse-note-f ()
-	"Define capture file."
-	(expand-file-name "notes.org" org-verse-directory))
+  "Define capture file."
+  (expand-file-name "notes.org" org-verse-directory))
 
 (defun add-org-capture-templates (capture-templates)
-	"Add capture from CAPTURE-TEMPLATES."
-	(setq org-capture-templates
-				(append org-capture-templates
-								capture-templates)))
+  "Add capture from CAPTURE-TEMPLATES."
+  (setq org-capture-templates
+	(append org-capture-templates
+		capture-templates)))
 
 
 (defun capture-get-destination-headline ()
-	"Fonction de capture."
-	(let* ((buf (org-capture-get :original-buffer))
-				 (headline (buffer-local-value 'org-verse-current-verse buf))
-				 (file (find-file (org-verse-note-f))))
-		(switch-to-buffer file)
-		(if (string= headline nil) ;;appel de org-capture en dehors du sidebar
-				(org-verse-search-headline (org-verse-complete))
-			(org-verse-search-headline headline))))
+  "Fonction de capture."
+  (let* ((buf (org-capture-get :original-buffer))
+	 (headline (buffer-local-value 'org-verse-current-verse buf))
+	 (file (find-file (org-verse-note-f))))
+    (switch-to-buffer file)
+    (if (string= headline nil) ;;appel de org-capture en dehors du sidebar
+	(org-verse-search-headline (org-verse-complete))
+      (org-verse-search-headline headline))))
 
 (defun org-verse-search-headline (headline)
-	"Create headline from HEADLINE."
-	(goto-char (point-min))
-	(if (re-search-forward (format org-complex-heading-regexp-format
-																 (regexp-quote headline))
-												 nil t)
-			(beginning-of-line)
-		(goto-char (point-max))
-		(unless (bolp) (insert "\n"))
-		(insert "* " headline "\n")
-		(org-capture-put :verse headline)
-		(beginning-of-line 0)))
+  "Create headline from HEADLINE."
+  (goto-char (point-min))
+  (if (re-search-forward (format org-complex-heading-regexp-format
+				 (regexp-quote headline))
+			 nil t)
+      (beginning-of-line)
+    (goto-char (point-max))
+    (unless (bolp) (insert "\n"))
+    (insert "* " headline "\n")
+    (org-capture-put :verse headline)
+    (beginning-of-line 0)))
 
 (add-org-capture-templates
  (doct `(("Org Verse" :keys "v"
-					:file org-verse-note-f
-					:function capture-get-destination-headline
-					:type entry
-					:children (("Org verse note"
-											:keys "n"
-											:template ("* %? \n:PROPERTIES:\n:verse: %(org-capture-get :verse) \n:END:")))))))
+	  :file org-verse-note-f
+	  :function capture-get-destination-headline
+	  :type entry
+	  :children (("Org verse note"
+		      :keys "n"
+		      :template ("* %? \n:PROPERTIES:\n:verse: %(org-capture-get :verse) \n:END:")))))))
 
 (defun org-verse-capture ()
   "Capture verse."

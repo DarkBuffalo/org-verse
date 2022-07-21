@@ -2,7 +2,7 @@
 ;; Author: Matthias David
 
 ;; Version: 0.0.2
-;; Package-Requires: ((emacs "27.1")(dash)(anaphora)(esqlite)(s)(db))
+;; Package-Requires: ((emacs "27.1")(dash)(anaphora)(esqlite)(s)(db)(doct)(magit-section))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -47,8 +47,6 @@
 (require 'anaphora)
 (require 'esqlite)
 (require 's)
-
-
 (require 'magit-section)
 
 (defgroup verse nil
@@ -154,12 +152,6 @@
                    (or "Jude")
                    (or "Révélation" "Rév" "Ré" "Re" "Rv")))
        space
-       ;; (group-n 1 (1+ digit))
-       ;; ":"
-       ;; (group (or
-       ;;         (group (1+ digit)"-"(group (1+ digit)":"(1+ digit)))
-       ;;         (group (1+ (1+ digit )(0+ ",")))
-       ;;         (group (1+ digit )"-"(1+ digit))))
 			 (group (1+ digit)) ":"
        (and
 				(group (1+ digit)
@@ -379,7 +371,9 @@ Use optional TITLE for a prettier heading."
 							(insert (propertize  (file-name-nondirectory f) 'face 'italic))
 							(make-button (point-at-bol) (point-at-eol) :type 'org-verse-link-backlink-button)
 							(newline))
-						files))))
+						files))
+
+		))
 
 (defun org-verse--no-backlinks ()
   "No backlinks'."
@@ -472,21 +466,64 @@ ARGS will be passed to `completing-read' after the PROMPT and COLLECTION argumen
   "Call the QUERY on the database and return the result."
   (esqlite-stream-read (org-verse--db-stream) query))
 
-(defun org-verse--serialize (livre chapter verse)
-	"Serialize reference from LIVRE, CHAPTER and VERSE."
+(defun org-verse-analyse-verses (book chapter verses)
+	"Analyse VERSES with BOOK and CHAPTER."
+	(let ((re (rx (or (and (group (1+ digit)) "-" (group (1+ digit)) (optional ":" (group (1+ digit))))
+										(and (group (1+ digit)(1+ ","(1+ digit))))
+										(group (1+ digit))))))
+		
+		(when (string-match re verses)
+			(let* ((v1 (match-string-no-properties 1 verses))
+						 (endchapterorverse (match-string-no-properties 2 verses))
+						 (endverse (match-string-no-properties 3 verses))
+						 (suiteverses (match-string-no-properties 4 verses))
+						 (unik (match-string-no-properties 5 verses))
+						 (verses! nil)
+						 (ref nil))
+				
+				(cond ((and (null v1) (not (null suiteverses))) ;; cas de la suite de versets
+							 (message (format "Cas de suites de verset: %s" suiteverses)))
+							((and (not (null v1)) (null suiteverses) (null endverse)) ;; cas de verset tant à tant
+							 (message "Cas de tant %s à tant %s" v1 endchapterorverse)
+							 (setq ref (org-verse-serialize book chapter v1 nil endchapterorverse))
+							 (setq verses! (org-verse-db-get-multiverse (plist-get ref :book) (plist-get ref :chapter) (plist-get ref :verse) (plist-get ref :endverse))))
+							((not (null endverse)) ;; cas de changement de chapitre
+							 (message "Cas de changement de chapitre %s-%s:%s" v1 endchapterorverse endverse)
+							 (setq ref (org-verse-serialize book chapter v1 endchapterorverse endverse))
+							 )
+							((not (null unik)) ;; cas du verset unique
+							 (setq ref (org-verse-serialize book chapter unik))
+							 (setq verses! (org-verse-db-get-verse (plist-get ref :book) (plist-get ref :chapter) (plist-get ref :verse)))
+							 ))
+				
+				verses!)))
+	
+	)
+
+(defun org-verse-serialize (livre chapter verse &optional endchapter endverse)
+	"Serialize reference from LIVRE, CHAPTER, VERSE, ENDCHAPTER and ENDVERSE."
 	(let ((ref '()))
 		(cl-loop for x in org-verse--canon
 						 when (s-matches-p (eval (car (org-verse--book-pattern x))) livre)
-						 do	 (setq ref (list :book (org-verse--book-number x) :chapter chapter :verse verse )))
+						 do	 (setq ref (list :book (org-verse--book-number x) :chapter chapter :verse verse :endchapter endchapter :endverse endverse)))
 		ref))
 
-(defun org-verse--db-get-verse (book chapter verse)
+(defun org-verse-db-get-verse (book chapter verse)
   "Retrieve the ref for BOOK, CHAPTER and VERSE."
 	(aif
 			(org-verse--db-read
 			 (format "SELECT verse FROM \"%s\" WHERE book=\"%s\" AND chapter=\"%s\" AND nbverse=\"%s\""
 							 org-verse-db-table-name book chapter verse))
 			(car (car it))))
+
+(defun org-verse-db-get-multiverse (book chapter verse endverse)
+	"Get verses from BOOK CHAPTER VERSE and ENDVERSE."
+	(aif
+			(org-verse--db-read
+			 (format "SELECT verse FROM \"%s\" WHERE book=\"%s\" AND chapter=\"%s\" AND nbverse BETWEEN \"%s\" AND \"%s\" "
+							 org-verse-db-table-name book chapter verse endverse ))
+			(mapconcat 'identity (apply 'append it) " "))
+	)
 
 ;; SIDEBAR BUFFER VERSE --------------------------------------
 ;; https://github.com/Kinneyzhang/gkroam/blob/b40555f45a844b8fefc419cd43dc9bf63205a0b4/gkroam.el#L1359
@@ -562,7 +599,8 @@ See `display-buffer-in-side-window' for example options."
 			(erase-buffer)
 			(visual-line-mode 1)
 			
-			(let ((ref (org-verse--serialize book chapter verses))
+			(let ((ref (org-verse-serialize book chapter verses))
+						(reference (org-verse-analyse-verses book chapter verses))
 						(inhibit-read-only t))
 				(setq org-verse-current-verse refverse) ; for org-capture
 				(magit-insert-section (root)
@@ -572,7 +610,9 @@ See `display-buffer-in-side-window' for example options."
 						
 						(magit-insert-section-body
 							;; insert verse
-							(insert (org-verse--db-get-verse (plist-get ref :book) (plist-get ref :chapter) (plist-get ref :verse)))))
+							;;(insert (org-verse-db-get-verse (plist-get ref :book) (plist-get ref :chapter) (plist-get ref :verse)))
+							(insert reference)
+							))
 					
 					(insert "\n\n")
 					
@@ -612,8 +652,7 @@ See `display-buffer-in-side-window' for example options."
   'action #'org-verse-button-verse
   'follow-link t
   'face 'org-verse-number-face
-  'help-echo "Clic le boutton pour lire le verset."
-  'help-args "test")
+  'help-echo "Clic le boutton pour lire le verset.")
 
 (defun org-verse-buttonize-buffer()
   "Turn all verse into button."
@@ -624,7 +663,7 @@ See `display-buffer-in-side-window' for example options."
 	(interactive)
   (if (fboundp 'remove-overlays)
       (remove-overlays))
-  
+	
   (save-excursion
     (goto-char (point-min))
     (while (search-forward-regexp org-verse-pattern nil t)
@@ -643,7 +682,6 @@ See `display-buffer-in-side-window' for example options."
 													'book book
                           'chapter chapter
                           'verses verses)))))
-
 
 (defun org-verse--turn-off ()
   "Tear down `org-verse-mode'."
@@ -694,5 +732,6 @@ See `display-buffer-in-side-window' for example options."
 
 (cl-eval-when (load eval)
 	(require 'org-verse-capture)
-	(require 'org-verse-db))
+	(require 'org-verse-db)
+	(require 'org-verse-retrieve))
 ;;; org-verse.el ends here
