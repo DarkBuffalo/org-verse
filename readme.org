@@ -49,8 +49,9 @@ if she has another name.
 
 
 
-* TODOS [1/4]
+* TODOS [3/4]
 - [X] gif
-- [ ] Fix magit-section "Cannot hide root section"
+- [X] Fix magit-section "Cannot hide root section"
+- [X] Fix regex verse , - (4:1 <> 4:13)
+- [ ] Fix bd req from ref 1:2,3,4
 - [ ] define your canon
-- [ ] Fix regex verse , - (4:1 <> 4:13)
