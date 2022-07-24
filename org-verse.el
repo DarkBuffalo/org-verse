@@ -67,6 +67,10 @@
 (defvar org-verse-db-table-name "bible"
   "Table name.")
 
+(defvar org-verse-note-file
+  (expand-file-name "notes.org" org-verse-directory)
+  "Principal notes File for save captures.")
+
 (defconst *user-home-directory*
   (getenv "HOME")
   "Path to user home directory.")
@@ -185,6 +189,8 @@ It is used when no mode-specific one is available.")
 
 
 (defvar org-verse--keywords nil)
+
+
 
 ;; STRUCTURE --------------------------------------------------------------------------------
 (defconst org-verse--canon nil
@@ -386,6 +392,15 @@ Use optional TITLE for a prettier heading."
 
 (defun org-verse--prepare-notes ()
   "Prepare notes' including links."
+  (with-temp-buffer
+    (insert-file-contents org-verse-note-file)
+    ;; [[https://stackoverflow.com/questions/17208842/how-to-parse-org-mode-by-org-element-elegantly#17310307][parse headings]]
+    (let* ((parsetree (org-element-parse-buffer 'headline))
+	   (heads (org-element-map parsetree 'headline 
+		    (lambda (hl) (org-element-property :title hl))))) 
+      
+      ))
+  
   (magit-insert-section (notes)
     (magit-insert-heading
       (insert (propertize (format "%s" "Notes") 'face 'magit-section-heading)))

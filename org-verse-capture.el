@@ -31,10 +31,6 @@
 ;;; Code:
 (require 'org-verse)
 
-(defun org-verse-note-f ()
-  "Define capture file."
-  (expand-file-name "notes.org" org-verse-directory))
-
 (defun add-org-capture-templates (capture-templates)
   "Add capture from CAPTURE-TEMPLATES."
   (setq org-capture-templates
@@ -67,7 +63,7 @@
 
 (add-org-capture-templates
  (doct `(("Org Verse" :keys "v"
-	  :file org-verse-note-f
+	  :file org-verse-note-file
 	  :function capture-get-destination-headline
 	  :type entry
 	  :children (("Org verse note"
