@@ -67,10 +67,6 @@
 (defvar org-verse-db-table-name "bible"
   "Table name.")
 
-(defvar org-verse-note-file
-  (expand-file-name "notes.org" org-verse-directory)
-  "Principal notes File for save captures.")
-
 (defconst *user-home-directory*
   (getenv "HOME")
   "Path to user home directory.")
@@ -80,10 +76,13 @@
   "Main verse directory."
   :type 'string)
 
+(defcustom org-verse-note-file
+  (expand-file-name "notes.org" org-verse-directory)
+  "Principal notes File for save captures.")
+
 (defcustom org-verse-file-extension "org"
   "The extension for verse files."
   :type 'string)
-
 
 (defconst org-verse-lexical
   '((org-verse-search-for-verse

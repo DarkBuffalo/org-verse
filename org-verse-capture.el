@@ -31,6 +31,10 @@
 ;;; Code:
 (require 'org-verse)
 
+(defun org-verse-note-f ()
+  "Principal notes File for save captures."
+  (expand-file-name "notes.org" org-verse-directory))
+
 (defun add-org-capture-templates (capture-templates)
   "Add capture from CAPTURE-TEMPLATES."
   (setq org-capture-templates
@@ -68,7 +72,7 @@
 	  :type entry
 	  :children (("Org verse note"
 		      :keys "n"
-		      :template ("* %? \n:PROPERTIES:\n:verse: %(org-capture-get :verse) \n:END:")))))))
+		      :template ("* %? \n:PROPERTIES:\n:VERSE: %(org-capture-get :verse) \n:END:")))))))
 
 (defun org-verse-capture ()
   "Capture verse."
