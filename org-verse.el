@@ -76,8 +76,12 @@
   "Main verse directory."
   :type 'string)
 
+(defcustom org-verse-note-filename nil
+  "Main verse directory."
+  :type 'string)
+
 (defcustom org-verse-note-file
-  (expand-file-name "notes.org" org-verse-directory)
+  (expand-file-name org-verse-note-filename org-verse-directory)
   "Principal notes File for save captures.")
 
 (defcustom org-verse-file-extension "org"
