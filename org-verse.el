@@ -50,6 +50,7 @@
 (require 'magit-section)
 (require 'org-verse-retrieve)
 
+
 (defgroup verse nil
   "Highlight numbers in source code."
   :prefix "org-verse-"
@@ -751,5 +752,6 @@ See `display-buffer-in-side-window' for example options."
 (cl-eval-when (load eval)
   (require 'org-verse-capture)
   (require 'org-verse-db)
-  (require 'org-verse-retrieve))
+  (require 'org-verse-retrieve)
+  (require 'org-verse-note))
 ;;; org-verse.el ends here
