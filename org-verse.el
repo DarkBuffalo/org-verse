@@ -33,8 +33,7 @@
 
 ;;; Commentary:
 
-;; This minor mode provides syntax highlighting of numeric literals
-;; in source code, like what many editors provide by default.
+;; This minor mode provides syntax highlighting of verse in orgmode.
 ;;
 ;; To enable: call `org-verse-mode'.
 ;;
@@ -56,6 +55,30 @@
   :prefix "org-verse-"
   :group 'faces)
 
+;;;; Customs
+(defcustom org-verse-directory "~/verses/"
+  "Main verse directory."
+  :type 'directory
+  :group 'verse)
+
+(defcustom org-verse-note-filename "Perles.org"
+  "Main verse directory."
+  :type 'string
+  :group 'verse)
+
+(defcustom org-verse-note-file
+  (expand-file-name org-verse-note-filename org-verse-directory)
+  "Principal notes File for save captures."
+  :type 'file
+  :group 'verse)
+
+(defcustom org-verse-file-extension "org"
+  "The extension for verse files."
+  :type 'string
+  :group 'verse)
+
+
+;;;; Faces
 (defface org-verse-number-face
   '((t ;;:inherit font-lock-constant-face
      :foreground "#81B145"
@@ -68,27 +91,10 @@
 (defvar org-verse-db-table-name "bible"
   "Table name.")
 
+;;;; Constantes
 (defconst *user-home-directory*
   (getenv "HOME")
   "Path to user home directory.")
-
-;;;; Variables
-(defcustom org-verse-directory "~/verses/"
-  "Main verse directory."
-  :type 'directory)
-
-(defcustom org-verse-note-filename "Perles.org"
-  "Main verse directory."
-  :type 'string)
-
-(defcustom org-verse-note-file
-  (expand-file-name org-verse-note-filename org-verse-directory)
-  "Principal notes File for save captures."
-  :type 'file)
-
-(defcustom org-verse-file-extension "org"
-  "The extension for verse files."
-  :type 'string)
 
 (defconst org-verse-lexical
   '((org-verse-search-for-verse
@@ -197,7 +203,7 @@ It is used when no mode-specific one is available.")
 
 
 
-;; STRUCTURE --------------------------------------------------------------------------------
+;;;; STRUCTURE
 (defconst org-verse--canon nil
   "A list of all the book.")
 
@@ -289,7 +295,7 @@ It is used when no mode-specific one is available.")
 
 
 
-;; ZK ----------------------------------------------------------------
+;;;; ZK
 
 (defvar org-verse-history nil)
 
@@ -338,7 +344,7 @@ supplied. Can take a PROMPT argument."
                               ".*")
                       file)
         (match-string 1 file))
-    "file with your search or verse"))
+    "file with your search org verse"))
 
 
 ;;;###autoload
@@ -353,7 +359,7 @@ supplied. Can take a PROMPT argument."
       (user-error "No results for \"%s\"" str))))
 
 
-;; Backlinks
+;;;; Backlinks
 
 (defvar org-verse-link-buton-action #'find-file-other-window
   "Action for `org-verse-link--find-file'.")
@@ -407,7 +413,7 @@ Use optional TITLE for a prettier heading."
     (magit-insert-section-body (insert (format "%s" "Notes")))))
 
 
-;; COMPLETION -------------------------------------------------------------------------------
+;;;; Completion
 (defun org-verse-completing-read (prompt collection &optional predicate require-match initial-input hist def inherit-input-method)
   "Call `completing-read' but return the value.
 from PROMPT and COLLECTION PREDICATE REQUIRE-MATCH INITIAL-INPUT
@@ -462,7 +468,7 @@ ARGS will be passed to `completing-read' after the PROMPT and COLLECTION argumen
                                                                       collect i))))))
     (format "%s %s:%s" (org-verse--book-abbrev book) chapter verses)))
 
-;; DATABASE ESQLITE -----------------------------
+;;;; DATABASE ESQLITE
 (defvar org-verse--db-file-name "/bible.db"
   "Name of the db containing all the verses.")
 
@@ -536,7 +542,7 @@ ARGS will be passed to `completing-read' after the PROMPT and COLLECTION argumen
                org-verse-db-table-name book chapter verse endverse ))
       (mapconcat 'identity (apply 'append it) " ")))
 
-;; SIDEBAR BUFFER VERSE --------------------------------------
+;;;; SIDEBAR BUFFER VERSE
 ;; https://github.com/Kinneyzhang/gkroam/blob/b40555f45a844b8fefc419cd43dc9bf63205a0b4/gkroam.el#L1359
 (defvar org-verse-buffer "*Verse*"
   "Verse Buffer name.")
@@ -643,7 +649,7 @@ See `display-buffer-in-side-window' for example options."
   (if (window-live-p (get-buffer-window org-verse-buffer))
       (delete-window (get-buffer-window org-verse-buffer))))
 
-;; BUTTONIZE BUFFER ----------------------------------------
+;;;; BUTTONIZE BUFFER
 (defun org-verse-button-verse (button)
   "BUTTON verse."
   (let ((refverse (button-get button 'title))
