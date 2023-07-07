@@ -51,9 +51,9 @@
 
 
 (defgroup verse nil
-  "Highlight numbers in source code."
+  "Highlight verse on orgmode file."
   :prefix "org-verse-"
-  :group 'faces)
+  :group 'applications)
 
 ;;;; Customs
 (defcustom org-verse-directory "~/verses/"
