@@ -725,6 +725,7 @@ See `display-buffer-in-side-window' for example options."
   (if org-verse-mode
       (progn
         (org-verse--turn-on)
+	(setq org-verse-note-db (org-verse-note-db-connect (org-verse-note-db-file)))
         (add-hook 'after-save-hook #'org-verse-buttonize-buffer)))
 
   (when font-lock-mode
@@ -749,6 +750,5 @@ See `display-buffer-in-side-window' for example options."
   (require 'org-verse-capture)
   (require 'org-verse-db)
   (require 'org-verse-retrieve)
-  ;;(require 'org-verse-note)
-  )
+  (require 'org-verse-note))
 ;;; org-verse.el ends here
