@@ -14,7 +14,7 @@
 ;; met:
 ;;
 ;;   * Redistributions of source code must retain the above copyright
-;;     notice, this list of conditions and the following disclaimer.
+					;     notice, this list of conditions and the following disclaimer.
 ;;   * Redistributions in binary form must reproduce the above copyright
 ;;     notice, this list of conditions and the following disclaimer in the
 ;;     documentation and/or other materials provided with the distribution.
@@ -44,7 +44,7 @@
 (require 'dash)
 (require 'cl-lib)
 (require 'anaphora)
-(require 'esqlite)
+;; (require 'esqlite)
 (require 's)
 (require 'magit-section)
 (require 'org-verse-retrieve)
@@ -52,7 +52,7 @@
 
 (defgroup verse nil
   "Highlight verse on orgmode file."
-  :prefix "org-verse-"
+  :prefix "org-verse"
   :group 'applications)
 
 ;;;; Customs
@@ -380,23 +380,23 @@ supplied. Can take a PROMPT argument."
 Use optional TITLE for a prettier heading."
 
   (magit-insert-section (backlinks)
-    (magit-insert-heading
-      (insert (propertize (format "%s\n" "Backlinks") 'face 'magit-section-heading)))
+			(magit-insert-heading
+			 (insert (propertize (format "%s\n" "Backlinks") 'face 'magit-section-heading)))
 
-    (magit-insert-section-body
-        (mapc (lambda (f)
-                (insert (propertize  (file-name-nondirectory f) 'face 'italic))
-                (make-button (point-at-bol) (point-at-eol) :type 'org-verse-link-backlink-button)
-                (newline))
-              files))))
+			(magit-insert-section-body
+			 (mapc (lambda (f)
+				 (insert (propertize  (file-name-nondirectory f) 'face 'italic))
+				 (make-button (point-at-bol) (point-at-eol) :type 'org-verse-link-backlink-button)
+				 (newline))
+			       files))))
 
 (defun org-verse--no-backlinks ()
   "No backlinks'."
   (magit-insert-section (backlinks)
-    (magit-insert-heading
-      (insert (propertize (format "%s\n" "Backlinks") 'face 'magit-section-heading)))
-    (magit-insert-section-body
-      (insert "No refs with this verse."))))
+			(magit-insert-heading
+			 (insert (propertize (format "%s\n" "Backlinks") 'face 'magit-section-heading)))
+			(magit-insert-section-body
+			 (insert "No refs with this verse."))))
 
 (defun org-verse--prepare-notes ()
   "Prepare notes' including links."
@@ -408,9 +408,9 @@ Use optional TITLE for a prettier heading."
                     (lambda (hl) (org-element-property :title hl)))))))
 
   (magit-insert-section (notes)
-    (magit-insert-heading
-      (insert (propertize (format "%s" "Notes") 'face 'magit-section-heading)))
-    (magit-insert-section-body (insert (format "%s" "Notes")))))
+			(magit-insert-heading
+			 (insert (propertize (format "%s" "Notes") 'face 'magit-section-heading)))
+			(magit-insert-section-body (insert (format "%s" "Notes")))))
 
 
 ;;;; Completion
@@ -468,25 +468,35 @@ ARGS will be passed to `completing-read' after the PROMPT and COLLECTION argumen
                                                                       collect i))))))
     (format "%s %s:%s" (org-verse--book-abbrev book) chapter verses)))
 
-;;;; DATABASE ESQLITE
-(defvar org-verse--db-file-name "/bible.db"
-  "Name of the db containing all the verses.")
+;;;; DATABASE SQLITE
 
-(defconst org-verse--db-process nil
-  "The process containing the opened db stream.")
+(defcustom org-verse--db-file-name "bible.db"
+  "Name of the db containing all the verses."
+  :type 'file
+  :group 'verse)
 
-(defun org-verse--db-stream ()
-  "Return the db stream or create and open it if doesn't exist."
-  (unless org-verse--db-process
-    (let ((db-path (concat  *user-home-directory*
-                            org-verse--db-file-name)))
-      (setf org-verse--db-process
-            (esqlite-stream-open db-path))))
-  org-verse--db-process)
+(defun org-verse--get-db-url ()
+  "Get the org-verse database URL."
+  (expand-file-name org-verse--db-file-name *user-home-directory*))
+
+(defvar org-verse--db nil
+  "The org-verse database.")
+
+(defun org-verse--get-db ()
+  "Get the org-verse database."
+  (unless org-verse--db
+    (setq org-verse--db (sqlite-open (org-verse--get-db-url))))
+  org-verse--db)
+
+(defun org-verse--reset-db-connection ()
+  "Reset the org-verse database connection."
+  (when org-verse--db
+    (sqlite-close org-verse--db)
+    (setq org-verse--db nil)))
 
 (defun org-verse--db-read (query)
   "Call the QUERY on the database and return the result."
-  (esqlite-stream-read (org-verse--db-stream) query))
+  (sqlite-select (org-verse--get-db) query))
 
 (defun org-verse-analyse-verses (book chapter verses)
   "Analyse VERSES with BOOK and CHAPTER."
@@ -605,7 +615,7 @@ See `display-buffer-in-side-window' for example options."
       (select-window (get-buffer-window org-verse-buffer)))))
 
 (defvar-local org-verse-current-verse
-  nil
+    nil
   "Current verse open on sidebar for 'org-capture'.")
 
 (defun org-verse-sidebar-refresh (refverse book chapter verses)
@@ -621,24 +631,24 @@ See `display-buffer-in-side-window' for example options."
             (inhibit-read-only t))
         (setq org-verse-current-verse refverse) ; for org-capture
         (magit-insert-section (root)
-          (magit-insert-section (verse)
-            (magit-insert-heading
-              (insert (propertize (format "%s\n" refverse) 'face 'magit-section-heading)))
+			      (magit-insert-section (verse)
+						    (magit-insert-heading
+						     (insert (propertize (format "%s\n" refverse) 'face 'magit-section-heading)))
 
-            (magit-insert-section-body
-              ;; insert verse
-              ;;(insert (org-verse-db-get-verse (plist-get ref :book) (plist-get ref :chapter) (plist-get ref :verse)))
-              (insert reference)))
+						    (magit-insert-section-body
+						     ;; insert verse
+						     ;;(insert (org-verse-db-get-verse (plist-get ref :book) (plist-get ref :chapter) (plist-get ref :verse)))
+						     (insert reference)))
 
-          (insert "\n\n")
+			      (insert "\n\n")
 
-          (if-let ((files (org-verse--grep-file-list refverse)))
-              (org-verse--prepare-backlinks files)
-            (org-verse--no-backlinks))
+			      (if-let ((files (org-verse--grep-file-list refverse)))
+				  (org-verse--prepare-backlinks files)
+				(org-verse--no-backlinks))
 
-          (insert "\n")
-          (org-verse--prepare-notes)
-          (insert "\n"))
+			      (insert "\n")
+			      (org-verse--prepare-notes)
+			      (insert "\n"))
 
         (read-only-mode)))
     (goto-char (point-min))))
