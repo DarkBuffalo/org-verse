@@ -44,7 +44,7 @@ If optional KEY is non-nil, return the key instead."
               (match-string-no-properties 0)
             (let ((trims "[ \t\n\r\"']+"))
               (string-trim
-               (buffer-substring-no-properties (point) (point-at-eol))
+               (buffer-substring-no-properties (point) (pos-eol))
                trims trims))))))))
 
 (defun org-verse-retrieve--value-title (file &optional key)

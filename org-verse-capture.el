@@ -65,14 +65,15 @@
     (org-capture-put :verse headline)
     (beginning-of-line 0)))
 
-(add-org-capture-templates
- (doct `(("Org Verse" :keys "v"
-	  :file org-verse-note-file
-	  ;;:function capture-get-destination-headline
-	  :type entry
-	  :children (("Org verse note"
-		      :keys "n"
-		      :template ("* %? \n:PROPERTIES:\n:VERSE: %(org-capture-get :verse) %(buffer-local-value 'org-verse-current-verse (org-capture-get :original-buffer)) \n:END:")))))))
+(with-eval-after-load 'org-capture
+  (add-org-capture-templates
+   (doct `(("Org Verse" :keys "v"
+	    :file org-verse-note-file
+	    ;;:function capture-get-destination-headline
+	    :type entry
+	    :children (("Org verse note"
+		        :keys "n"
+		        :template ("* %? \n:PROPERTIES:\n:VERSE: %(org-capture-get :verse) %(buffer-local-value 'org-verse-current-verse (org-capture-get :original-buffer)) \n:END:"))))))))
 
 (defun org-verse-capture ()
   "Capture verse."

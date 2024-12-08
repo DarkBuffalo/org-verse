@@ -44,11 +44,10 @@
 (require 'dash)
 (require 'cl-lib)
 (require 'anaphora)
-;; (require 'esqlite)
 (require 's)
 (require 'magit-section)
 (require 'org-verse-retrieve)
-
+(require 'org)
 
 (defgroup verse nil
   "Highlight verse on orgmode file."
@@ -172,9 +171,7 @@
        (and
         (group (1+ digit)
                (| (seq (0+ "-"(1+ digit) (optional ":" (1+ digit)))
-                       (seq (0+ ","(1+ digit)))))))
-
-       )
+                       (seq (0+ ","(1+ digit))))))))
   "Generic regexp for number highlighting.
 It is used when no mode-specific one is available.")
 
@@ -226,11 +223,36 @@ It is used when no mode-specific one is available.")
       ;; Freshly add it, otherwise.
       (push new-book org-verse--canon))))
 
-(org-verse-add-book '((rx (or "Genèse" "Gen" "Gn"))) "Gn" "Genèse" 1 '((1 . 31) (2 . 25) (3 . 24) (4 . 26) (5 . 32) (6 . 22) (7 . 24) (8 . 22) (9 . 29) (10 . 32) (11 . 32) (12 . 20) (13 . 18) (14 . 24) (15 . 21) (16 . 16) (17 . 27) (18 . 33) (19 . 38) (20 . 18) (21 . 34) (22 . 24) (23 . 20) (24 . 67) (25 . 34) (26 . 35) (27 . 46) (28 . 22) (29 . 35) (30 . 43) (31 . 55) (32 . 32) (33 . 20) (34 . 31) (35 . 29) (36 . 43) (37 . 36) (38 . 30) (39 . 23) (40 . 23) (41 . 57) (42 . 38) (43 . 34) (44 . 34) (45 . 28) (46 . 34) (47 . 31) (48 . 22) (49 . 33) (50 . 26)))
-(org-verse-add-book '((rx (or "Exode" "Ex"))) "Ex" "Exode" 2  '((1 . 22) (2 . 25) (3 . 22) (4 . 31) (5 . 23) (6 . 30) (7 . 25) (8 . 32) (9 . 35) (10 . 29) (11 . 10) (12 . 51) (13 . 22) (14 . 31) (15 . 27) (16 . 36) (17 . 16) (18 . 27) (19 . 25) (20 . 26) (21 . 36) (22 . 31) (23 . 33) (24 . 18) (25 . 40) (26 . 37) (27 . 21) (28 . 43) (29 . 46) (30 . 38) (31 . 18) (32 . 35) (33 . 23) (34 . 35) (35 . 35) (36 . 38) (37 . 29) (38 . 31) (39 . 43) (40 . 38)))
-(org-verse-add-book '((rx (or "Lévitique" "Lev" "Lv"))) "Lv" "Lévitique" 3  '((1 . 17) (2 . 16) (3 . 17) (4 . 35) (5 . 19) (6 . 30) (7 . 38) (8 . 36) (9 . 24) (10 . 20) (11 . 47) (12 . 8) (13 . 59) (14 . 57) (15 . 33) (16 . 34) (17 . 16) (18 . 30) (19 . 37) (20 . 27) (21 . 24) (22 . 33) (23 . 44) (24 . 23) (25 . 55) (26 . 46) (27 . 34)))
-(org-verse-add-book '((rx (or "Nombres" "Nb"))) "Nb" "Nombres" 4      '((1 . 54) (2 . 34) (3 . 51) (4 . 49) (5 . 31) (6 . 27) (7 . 89) (8 . 26) (9 . 23) (10 . 36) (11 . 35) (12 . 16) (13 . 33) (14 . 45) (15 . 41) (16 . 50) (17 . 13) (18 . 32) (19 . 22) (20 . 29) (21 . 35) (22 . 41) (23 . 30) (24 . 25) (25 . 18)(26 . 65) (27 . 23) (28 . 31) (29 . 40) (30 . 16) (31 . 54) (32 . 42) (33 . 56) (34 . 29) (35 . 34) (36 . 13)))
-(org-verse-add-book '((rx (or "Deutéronome" "Deut" "Dt"))) "Dt" "Deutéronome" 5  '((1 . 46) (2 . 37) (3 . 29) (4 . 49) (5 . 33) (6 . 25) (7 . 26) (8 . 20) (9 . 29) (10 . 22) (11 . 32) (12 . 32) (13 . 18) (14 . 29) (15 . 23) (16 . 22) (17 . 20) (18 . 22) (19 . 21) (20 . 20) (21 . 23) (22 . 30) (23 . 25) (24 . 22) (25 . 19)(26 . 19) (27 . 26) (28 . 68) (29 . 29) (30 . 20) (31 . 30) (32 . 52) (33 . 29) (34 . 12)))
+(org-verse-add-book '((rx (or "Genèse" "Gen" "Gn"))) "Gn" "Genèse" 1 '((1 . 31) (2 . 25) (3 . 24) (4 . 26) (5 . 32) (6 . 22) (7 . 24)
+                                                                       (8 . 22) (9 . 29) (10 . 32) (11 . 32) (12 . 20) (13 . 18)
+                                                                       (14 . 24) (15 . 21) (16 . 16) (17 . 27) (18 . 33) (19 . 38)
+                                                                       (20 . 18) (21 . 34) (22 . 24) (23 . 20) (24 . 67) (25 . 34)
+                                                                       (26 . 35) (27 . 46) (28 . 22) (29 . 35) (30 . 43) (31 . 55)
+                                                                       (32 . 32) (33 . 20) (34 . 31) (35 . 29) (36 . 43) (37 . 36)
+                                                                       (38 . 30) (39 . 23) (40 . 23) (41 . 57) (42 . 38) (43 . 34)
+                                                                       (44 . 34) (45 . 28) (46 . 34) (47 . 31) (48 . 22) (49 . 33) (50 . 26)))
+(org-verse-add-book '((rx (or "Exode" "Ex"))) "Ex" "Exode" 2  '((1 . 22) (2 . 25) (3 . 22) (4 . 31) (5 . 23) (6 . 30) (7 . 25)
+                                                                (8 . 32) (9 . 35) (10 . 29) (11 . 10) (12 . 51) (13 . 22) (14 . 31)
+                                                                (15 . 27) (16 . 36) (17 . 16) (18 . 27) (19 . 25) (20 . 26) (21 . 36)
+                                                                (22 . 31) (23 . 33) (24 . 18) (25 . 40) (26 . 37) (27 . 21) (28 . 43)
+                                                                (29 . 46) (30 . 38) (31 . 18) (32 . 35) (33 . 23) (34 . 35) (35 . 35)
+                                                                (36 . 38) (37 . 29) (38 . 31) (39 . 43) (40 . 38)))
+(org-verse-add-book '((rx (or "Lévitique" "Lev" "Lv"))) "Lv" "Lévitique" 3  '((1 . 17) (2 . 16) (3 . 17) (4 . 35) (5 . 19) (6 . 30)
+                                                                              (7 . 38) (8 . 36) (9 . 24) (10 . 20) (11 . 47) (12 . 8)
+                                                                              (13 . 59) (14 . 57) (15 . 33) (16 . 34) (17 . 16) (18 . 30)
+                                                                              (19 . 37) (20 . 27) (21 . 24) (22 . 33) (23 . 44) (24 . 23)
+                                                                              (25 . 55) (26 . 46) (27 . 34)))
+(org-verse-add-book '((rx (or "Nombres" "Nb"))) "Nb" "Nombres" 4      '((1 . 54) (2 . 34) (3 . 51) (4 . 49) (5 . 31) (6 . 27) (7 . 89)
+                                                                        (8 . 26) (9 . 23) (10 . 36) (11 . 35) (12 . 16) (13 . 33) (14 . 45)
+                                                                        (15 . 41) (16 . 50) (17 . 13) (18 . 32) (19 . 22) (20 . 29) (21 . 35)
+                                                                        (22 . 41) (23 . 30) (24 . 25) (25 . 18)(26 . 65) (27 . 23) (28 . 31)
+                                                                        (29 . 40) (30 . 16) (31 . 54) (32 . 42) (33 . 56) (34 . 29) (35 . 34) (36 . 13)))
+(org-verse-add-book '((rx (or "Deutéronome" "Deut" "Dt"))) "Dt" "Deutéronome" 5  '((1 . 46) (2 . 37) (3 . 29) (4 . 49) (5 . 33) (6 . 25)
+                                                                                   (7 . 26) (8 . 20) (9 . 29) (10 . 22) (11 . 32) (12 . 32)
+                                                                                   (13 . 18) (14 . 29) (15 . 23) (16 . 22) (17 . 20) (18 . 22)
+                                                                                   (19 . 21) (20 . 20) (21 . 23) (22 . 30) (23 . 25) (24 . 22)
+                                                                                   (25 . 19)(26 . 19) (27 . 26) (28 . 68) (29 . 29) (30 . 20)
+                                                                                   (31 . 30) (32 . 52) (33 . 29) (34 . 12)))
 (org-verse-add-book '((rx (or "Josué" "Jos"))) "Jos" "Josué" 6  '((1 . 18) (2 . 24) (3 . 17) (4 . 24) (5 . 15) (6 . 27) (7 . 26) (8 . 35) (9 . 27) (10 . 43) (11 . 23) (12 . 24) (13 . 33) (14 . 15) (15 . 63) (16 . 10) (17 . 18) (18 . 28) (19 . 51) (20 . 9) (21 . 45) (22 . 34) (23 . 16) (24 . 33)))
 (org-verse-add-book '((rx (or "Juges" "Jg"))) "Jg" "Juges" 7  '((1 . 36) (2 . 23) (3 . 31) (4 . 24) (5 . 31) (6 . 40) (7 . 25) (8 . 35) (9 . 57) (10 . 18) (11 . 40) (12 . 15) (13 . 25) (14 . 20) (15 . 20) (16 . 31) (17 . 13) (18 . 31) (19 . 30) (20 . 48) (21 . 25)))
 (org-verse-add-book '((rx (or "Ruth" "Ru"))) "Ru" "Ruth" 8  '((1 . 22) (2 . 23) (3 . 18) (4 . 22)))
@@ -304,22 +326,32 @@ It is used when no mode-specific one is available.")
 Must take an optional prompt and a list of files"
   :type 'function)
 
+
+;; WIN grep -irl "Matt 6:26" C:\Users\matth\Dropbox\Org\notes --include=*.org
 (defun org-verse--grep-file-list (str)
   "Return a list of files containing regexp STR."
-  (let* ((files (shell-command-to-string (concat
-                                          "grep -lir --include \\*."
-                                          org-verse-file-extension
-                                          " -e "
-                                          (shell-quote-argument str)
-                                          " "
-                                          org-verse-directory
-                                          " 2>/dev/null"))))
+  (let* ((files (if (eq system-type 'windows-nt)
+                    (shell-command-to-string (concat
+                                              "grep -irl "
+                                              (shell-quote-argument str)
+                                              " "
+                                              (file-truename org-verse-directory)
+                                              " --include=*."
+                                              org-verse-file-extension))
+                  (shell-command-to-string (concat
+                                            "grep -lir --include \\*."
+                                            org-verse-file-extension
+                                            " -e "
+                                            (shell-quote-argument str)
+                                            " "
+                                            org-verse-directory
+                                            " 2>/dev/null")))))
     (split-string files "\n" t)))
 
 
 (defun org-verse--select-file (&optional prompt list)
   "Wrapper around `completing-read' to select org-verse-file.
-Offers candidates from 'org-verse-directory', or from LIST when
+Offers candidates from `org-verse-directory', or from LIST when
 supplied. Can take a PROMPT argument."
   (let* ((files (if list list
                   ;;(org-verse--directory-files t)
@@ -386,7 +418,7 @@ Use optional TITLE for a prettier heading."
 			(magit-insert-section-body
 			 (mapc (lambda (f)
 				 (insert (propertize  (file-name-nondirectory f) 'face 'italic))
-				 (make-button (point-at-bol) (point-at-eol) :type 'org-verse-link-backlink-button)
+				 (make-button (pos-bol) (pos-eol) :type 'org-verse-link-backlink-button)
 				 (newline))
 			       files))))
 
@@ -396,7 +428,7 @@ Use optional TITLE for a prettier heading."
 			(magit-insert-heading
 			 (insert (propertize (format "%s\n" "Backlinks") 'face 'magit-section-heading)))
 			(magit-insert-section-body
-			 (insert "No refs with this verse."))))
+			 (insert "Pas de références de ce verset."))))
 
 (defun org-verse--prepare-notes ()
   "Prepare notes' including links."
@@ -434,7 +466,7 @@ We can use this function to `interactive' without needing to call
     (defun favorite-ssh (hostname)
       \"Start a SSH session to a given HOSTNAME.\"
       (interactive (list (alt-completing-read \"Host: \" favorite-hosts)))
-      (message \"Rockin' and rollin' to %s\" hostname))"
+      (message \"Rockin and rollin to %s\" hostname))"
 
   ;; Yes, Emacs really should have an `alistp' predicate to make this code more readable:
   (cl-flet ((assoc-list-p (obj) (and (listp obj) (consp (car obj)))))
@@ -616,7 +648,7 @@ See `display-buffer-in-side-window' for example options."
 
 (defvar-local org-verse-current-verse
     nil
-  "Current verse open on sidebar for 'org-capture'.")
+  "Current verse open on sidebar for `org-capture'.")
 
 (defun org-verse-sidebar-refresh (refverse book chapter verses)
   "Refresh the sidebar with REFVERSE, BOOK, CHAPTER and VERSES."
