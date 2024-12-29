@@ -111,7 +111,7 @@ the string itself is wrapped in quotes."
 
 
 (defun org-verse-note-db-select (db refverse)
-  "Return rows from DB matching BOOK CHAPTER VERSE.
+  "Return rows from DB matching REFVERSE.
 If any of these are nil, they are not included in the select statement."
   (pcase org-verse-note-db-sqlite-interface
     ('builtin (mapcar (lambda (row) (mapcar #'org-verse-note-db-standardize-result row))
@@ -183,7 +183,7 @@ callers have already called this function")
 (defvar org-verse-note-capture-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-c" #'org-verse-note-capture-finalize)
-    ;;(define-key map "\C-c \C-k" #'org-verse-note-kill)
+    (define-key map "\C-c\C-k" #'org-verse-note-kill)
     map)
   "Key map for `org-verse-note-capture-mode', a minor mode.
 This is used when capturing new notes.")
@@ -197,7 +197,8 @@ This is used when capturing new notes.")
     (setq-local header-line-format
                 (substitute-command-keys
                  "\\<org-verse-note-capture-mode-map>Capture buffer.  Finish \
-`\\[org-verse-note-capture-finalize]'."))))
+`\\[org-verse-note-capture-finalize]'.\
+Annuler `\\[org-verse-note-kill]'."))))
 
 
 (defun org-verse-note-capture-finalize ()
@@ -213,6 +214,11 @@ This is used when capturing new notes.")
                                        org-verse-note-n-tags)
                  (ewoc-enter-last org-verse-note-ewoc note))))))
 
+
+(defun org-verse-note-kill ()
+  "Cancel the current note capture."
+  (interactive)
+  (kill-buffer))
 
 (defun org-verse-note--metadata-overlay ()
   "Return the overlay used for metadata."
@@ -256,8 +262,7 @@ or, if unknown, `ekg-inline'."
     (setf (ekg-note-text ekg-note) (car ticons)
           (ekg-note-inlines ekg-note) (cdr ticons)
           (ekg-note-mode ekg-note) major-mode
-          (ekg-note-tags ekg-note) (seq-uniq (ekg-note-tags ekg-note))))
-  )
+          (ekg-note-tags ekg-note) (seq-uniq (ekg-note-tags ekg-note)))))
 
 
 

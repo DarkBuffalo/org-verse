@@ -14,7 +14,7 @@
 ;; met:
 ;;
 ;;   * Redistributions of source code must retain the above copyright
-					;     notice, this list of conditions and the following disclaimer.
+;;     notice, this list of conditions and the following disclaimer.
 ;;   * Redistributions in binary form must reproduce the above copyright
 ;;     notice, this list of conditions and the following disclaimer in the
 ;;     documentation and/or other materials provided with the distribution.
@@ -49,7 +49,7 @@
 (require 'org-verse-retrieve)
 (require 'org)
 
-(defgroup verse nil
+(defgroup org-verse nil
   "Highlight verse on orgmode file."
   :prefix "org-verse"
   :group 'applications)
@@ -58,23 +58,23 @@
 (defcustom org-verse-directory "~/verses/"
   "Main verse directory."
   :type 'directory
-  :group 'verse)
+  :group 'org-verse)
 
 (defcustom org-verse-note-filename "Perles.org"
   "Main verse directory."
   :type 'string
-  :group 'verse)
+  :group 'org-verse)
 
 (defcustom org-verse-note-file
   (expand-file-name org-verse-note-filename org-verse-directory)
   "Principal notes File for save captures."
   :type 'file
-  :group 'verse)
+  :group 'org-verse)
 
 (defcustom org-verse-file-extension "org"
   "The extension for verse files."
   :type 'string
-  :group 'verse)
+  :group 'org-verse)
 
 
 ;;;; Faces
@@ -85,7 +85,7 @@
      :box (:line-width 2)
      :weight bold))
   "Face used to verse references."
-  :group 'verse)
+  :group 'org-verse)
 
 (defvar org-verse-db-table-name "bible"
   "Table name.")
@@ -754,35 +754,51 @@ See `display-buffer-in-side-window' for example options."
       (set (make-local-variable 'org-verse--keywords) regexp))))
 
 
-(defconst org-verse-mode-keymap (make-keymap))
-(define-key org-verse-mode-keymap (kbd "C-c /") #'org-verse-buttonize-buffer)
+(defconst org-verse-mode-map (make-keymap))
+(define-key org-verse-mode-map (kbd "C-c /") #'org-verse-buttonize-buffer)
 
 ;;;###autoload
-(define-minor-mode org-verse-mode "Highlight bible verses."
-  :init-value nil
+(define-minor-mode org-verse-mode
+  "Highlight bible verses."
+  ;;:init-value nil
   :lighter " verse"
-  :keymap org-verse-mode-keymap
-  :group 'verse
+  :keymap org-verse-mode-map
+  ;;:group 'verse
   (org-verse--turn-off)
   (if org-verse-mode
       (progn
+        ;; Actions à effectuer lors de l'activation du mode
         (org-verse--turn-on)
 	(setq org-verse-note-db (org-verse-note-db-connect (org-verse-note-db-file)))
-        (add-hook 'after-save-hook #'org-verse-buttonize-buffer)))
+        (add-hook 'after-save-hook #'org-verse-buttonize-buffer))
+    ;; Actions à effectuer lors de la désactivation du mode
+   (progn
+     (org-verse--turn-off)
+     (message "Org Verse Minor Mode est désactivé!")))
 
-  (when font-lock-mode
-    (if (fboundp 'font-lock-flush)
-        (font-lock-flush)
-      (with-no-warnings (font-lock-fontify-buffer)))))
+  ;; (when font-lock-mode
+  ;;   (if (fboundp 'font-lock-flush)
+  ;;       (font-lock-flush)
+  ;;     (with-no-warnings (font-lock-fontify-buffer))))
+
+  )
+
+;; ;;;###autoload
+;; (add-hook 'org-verse-mode-hook
+;;           (function
+;;            (lambda ()
+;;              (setq case-fold-search t))))
+
+;; ;;;###autoload
+;;(add-hook 'org-mode-hook 'org-verse-mode)
 
 ;;;###autoload
-(add-hook 'org-verse-mode-hook
-          (function
-           (lambda ()
-             (setq case-fold-search t))))
+(defun org-verse-minor-mode-enable ()
+  "Enable `org-verse-mode' in Org buffers."
+  (when (derived-mode-p 'org-mode)
+    (org-verse-mode 1)))
 
-;;;###autoload
-(add-hook 'org-mode-hook 'org-verse-mode)
+(add-hook 'org-mode-hook 'org-verse-minor-mode-enable)
 
 
 ;;package bootstrap
@@ -791,6 +807,7 @@ See `display-buffer-in-side-window' for example options."
 (cl-eval-when (load eval)
   (require 'org-verse-capture)
   (require 'org-verse-db)
-  (require 'org-verse-retrieve)
-  (require 'org-verse-note))
+  ;;(require 'org-verse-retrieve)
+  (require 'org-verse-note)
+  )
 ;;; org-verse.el ends here
