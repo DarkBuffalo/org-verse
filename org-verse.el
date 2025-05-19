@@ -410,25 +410,23 @@ supplied. Can take a PROMPT argument."
 (defun org-verse--prepare-backlinks (files)
   "Prepare backlinks' including FILES.
 Use optional TITLE for a prettier heading."
-
   (magit-insert-section (backlinks)
-			(magit-insert-heading
-			 (insert (propertize (format "%s\n" "Backlinks") 'face 'magit-section-heading)))
-
-			(magit-insert-section-body
-			 (mapc (lambda (f)
-				 (insert (propertize  (file-name-nondirectory f) 'face 'italic))
-				 (make-button (pos-bol) (pos-eol) :type 'org-verse-link-backlink-button)
-				 (newline))
-			       files))))
+                        (magit-insert-heading
+                         (insert (propertize (format "%s\n" "Backlinks") 'face 'magit-section-heading)))
+                        (magit-insert-section-body
+                         (mapc (lambda (f)
+                                 (insert (propertize  (file-name-nondirectory f) 'face 'italic))
+                                 (make-button (pos-bol) (pos-eol) :type 'org-verse-link-backlink-button)
+                                 (newline))
+                               files))))
 
 (defun org-verse--no-backlinks ()
   "No backlinks'."
   (magit-insert-section (backlinks)
-			(magit-insert-heading
-			 (insert (propertize (format "%s\n" "Backlinks") 'face 'magit-section-heading)))
-			(magit-insert-section-body
-			 (insert "Pas de références de ce verset."))))
+                        (magit-insert-heading
+                         (insert (propertize (format "%s\n" "Backlinks") 'face 'magit-section-heading)))
+                        (magit-insert-section-body
+                         (insert "Pas de références de ce verset."))))
 
 (defun org-verse--prepare-notes ()
   "Prepare notes' including links."
@@ -440,9 +438,9 @@ Use optional TITLE for a prettier heading."
                     (lambda (hl) (org-element-property :title hl)))))))
 
   (magit-insert-section (notes)
-			(magit-insert-heading
-			 (insert (propertize (format "%s" "Notes") 'face 'magit-section-heading)))
-			(magit-insert-section-body (insert (format "%s" "Notes")))))
+                        (magit-insert-heading
+                         (insert (propertize (format "%s" "Notes") 'face 'magit-section-heading)))
+                        (magit-insert-section-body (insert (format "%s" "Notes")))))
 
 
 ;;;; Completion
@@ -565,7 +563,7 @@ ARGS will be passed to `completing-read' after the PROMPT and COLLECTION argumen
   (let ((ref '()))
     (cl-loop for x in org-verse--canon
              when (s-matches-p (eval (car (org-verse--book-pattern x))) livre)
-             do	 (setq ref (list :book (org-verse--book-number x) :chapter chapter :verse verse :endchapter endchapter :endverse endverse)))
+             do (setq ref (list :book (org-verse--book-number x) :chapter chapter :verse verse :endchapter endchapter :endverse endverse)))
     ref))
 
 (defun org-verse-db-get-verse (book chapter verse)
@@ -663,24 +661,21 @@ See `display-buffer-in-side-window' for example options."
             (inhibit-read-only t))
         (setq org-verse-current-verse refverse) ; for org-capture
         (magit-insert-section (root)
-			      (magit-insert-section (verse)
-						    (magit-insert-heading
-						     (insert (propertize (format "%s\n" refverse) 'face 'magit-section-heading)))
+                              (magit-insert-section (verse)
+                                                    (magit-insert-heading
+                                                     (insert (propertize (format "%s\n" refverse) 'face 'magit-section-heading)))
+                                                    (magit-insert-section-body
+                                                     ;; insert verse
+                                                     ;;(insert (org-verse-db-get-verse (plist-get ref :book) (plist-get ref :chapter) (plist-get ref :verse)))
+                                                     (insert reference)))
+                              (insert "\n\n")
+                              (if-let ((files (org-verse--grep-file-list refverse)))
+                                  (org-verse--prepare-backlinks files)
+                                (org-verse--no-backlinks))
 
-						    (magit-insert-section-body
-						     ;; insert verse
-						     ;;(insert (org-verse-db-get-verse (plist-get ref :book) (plist-get ref :chapter) (plist-get ref :verse)))
-						     (insert reference)))
-
-			      (insert "\n\n")
-
-			      (if-let ((files (org-verse--grep-file-list refverse)))
-				  (org-verse--prepare-backlinks files)
-				(org-verse--no-backlinks))
-
-			      (insert "\n")
-			      (org-verse--prepare-notes)
-			      (insert "\n"))
+                              (insert "\n")
+                              (org-verse--prepare-notes)
+                              (insert "\n"))
 
         (read-only-mode)))
     (goto-char (point-min))))
@@ -711,94 +706,86 @@ See `display-buffer-in-side-window' for example options."
   'face 'org-verse-number-face
   'help-echo "Clic le boutton pour lire le verset.")
 
-(defun org-verse-buttonize-buffer()
-  "Turn all verse into button."
-  ;; For some reason, overlays accumulate if a buffer
-  ;; is visited another time, making emacs slower and slower.
-  ;; Hack is to remove them all first.
-  ;; remove-overlays does not seem to exist for older emacsen (<23.x.x?)
-  (interactive)
-  (if (fboundp 'remove-overlays)
-      (remove-overlays))
 
+(defun org-verse-make-button (start end)
+  "Créer un bouton entre START et END avec une action personnalisée."
+  ;;recuperer le contenu de la recherche pour le mettre en titre
+  ;;https://github.com/Kinneyzhang/gkroam/blob/b40555f45a844b8fefc419cd43dc9bf63205a0b4/gkroam.el#L708
+  (let ((title (match-string-no-properties 0))
+        (book (match-string-no-properties 1))
+        (chapter (match-string-no-properties 2))
+        (verses (match-string-no-properties 3)))
+    ;;créer les bouttons
+    (make-text-button (match-beginning 0)
+                      (match-end 0)
+                      :type 'org-verse-button
+                      ;; TODO voir si on peut mettre un 'help-echo avec le verset
+                      ;;inserer le titre recuperer plus haut
+                      'title title
+                      'book book
+                      'chapter chapter
+                      'verses verses)))
+
+(defun org-verse-scan-buffer ()
+  "Parcourt le buffer courant et transforme chaque `verset' en bouton."
   (save-excursion
     (goto-char (point-min))
-    (while (search-forward-regexp org-verse-pattern nil t)
-      ;;recuperer le contenu de la recherche pour le mettre en titre
-      ;;https://github.com/Kinneyzhang/gkroam/blob/b40555f45a844b8fefc419cd43dc9bf63205a0b4/gkroam.el#L708
-      (let ((title (match-string-no-properties 0))
-            (book (match-string-no-properties 1))
-            (chapter (match-string-no-properties 2))
-            (verses (match-string-no-properties 3)))
-        ;;créer les bouttons
-        (make-text-button (match-beginning 0)
-                          (match-end 0)
-                          :type 'org-verse-button
-                          ;;inserer le titre recuperer plus haut
-                          'title title
-                          'book book
-                          'chapter chapter
-                          'verses verses)))))
+    (while (re-search-forward org-verse-pattern nil t)
+      (org-verse-make-button (match-beginning 0) (match-end 0)))))
 
-(defun org-verse--turn-off ()
-  "Tear down `org-verse-mode'."
-  (when org-verse--keywords
-    (font-lock-remove-keywords nil org-verse--keywords)
-    (kill-local-variable 'org-verse--keywords)))
 
-(defun org-verse--turn-on ()
-  "Set up `org-verse-mode'."
-  (let ((regexp org-verse-lexical))
-    (when regexp
-      (org-verse-buttonize-buffer)
-      (set (make-local-variable 'org-verse--keywords) regexp))))
+(defun org-verse-remove-buttons (beg end)
+  "Supprime les boutons texte dans la région BEG à END."
+  (remove-text-properties beg end '(button nil)))
+
+(defun org-verse-scan-region (beg end)
+  "Parcourt la rgion BEG à END et transforme `bonjour' en boutons."
+  (save-excursion
+    (goto-char beg)
+    (while (re-search-forward org-verse-pattern end t)
+      ;; Supprimer les anciens boutons sil y en a
+      (org-verse-remove-buttons (match-beginning 0) (match-end 0))
+      (org-verse-make-button (match-beginning 0) (match-end 0)))))
+
+(defun org-verse-after-change (beg end _len)
+  "Met  jour les boutons dans les lignes modifiées."
+  (save-excursion
+    (goto-char beg)
+    (let ((line-start (line-beginning-position))
+          (line-end (progn (goto-char end) (line-end-position))))
+      (org-verse-remove-buttons line-start line-end)
+      (org-verse-scan-region line-start line-end))))
+
+(defun org-verse-scan-entire-buffer ()
+  "Re-scanne tout le buffer pour mettre à jour les boutons."
+  (interactive)
+  (org-verse-remove-buttons (point-min) (point-max))
+  (org-verse-scan-region (point-min) (point-max)))
 
 
 (defconst org-verse-mode-map (make-keymap))
-(define-key org-verse-mode-map (kbd "C-c /") #'org-verse-buttonize-buffer)
+(define-key org-verse-mode-map (kbd "C-c /") #'org-verse-scan-entire-buffer)
 
 ;;;###autoload
 (define-minor-mode org-verse-mode
-  "Highlight bible verses."
+  "Highlight bible verses in org buffer."
   ;;:init-value nil
   :lighter " verse"
   :keymap org-verse-mode-map
-  ;;:group 'verse
-  (org-verse--turn-off)
   (if org-verse-mode
       (progn
         ;; Actions à effectuer lors de l'activation du mode
-        (org-verse--turn-on)
-	(setq org-verse-note-db (org-verse-note-db-connect (org-verse-note-db-file)))
-        (add-hook 'after-save-hook #'org-verse-buttonize-buffer))
+        (org-verse-scan-entire-buffer)
+        (setq org-verse-note-db (org-verse-note-db-connect (org-verse-note-db-file)))
+        (add-hook 'after-change-functions #'org-verse-after-change nil t)
+        (add-hook 'before-save-hook #'org-verse-scan-entire-buffer nil t))
     ;; Actions à effectuer lors de la désactivation du mode
    (progn
-     (org-verse--turn-off)
-     (message "Org Verse Minor Mode est désactivé!")))
+     (org-verse-remove-buttons (point-min) (point-max))
+     (remove-hook 'after-change-functions #'org-verse-after-change t)
+     (remove-hook 'before-save-hook #'org-verse-scan-entire-buffer t)
+     (message "Le mode mineur `Org Verse' est désactivé!"))))
 
-  ;; (when font-lock-mode
-  ;;   (if (fboundp 'font-lock-flush)
-  ;;       (font-lock-flush)
-  ;;     (with-no-warnings (font-lock-fontify-buffer))))
-
-  )
-
-;; ;;;###autoload
-;; (add-hook 'org-verse-mode-hook
-;;           (function
-;;            (lambda ()
-;;              (setq case-fold-search t))))
-
-;; ;;;###autoload
-;;(add-hook 'org-mode-hook 'org-verse-mode)
-
-;;;###autoload
-(defun org-verse-minor-mode-enable ()
-  "Enable `org-verse-mode' in Org buffers."
-  (when (derived-mode-p 'org-mode)
-    (org-verse-mode 1)))
-
-(add-hook 'org-mode-hook 'org-verse-minor-mode-enable)
 
 
 ;;package bootstrap

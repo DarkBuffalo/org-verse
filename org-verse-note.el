@@ -25,7 +25,6 @@
 (require 'cl-lib)
 (require 'ewoc)
 
-
 (defvar-local org-verse-note-n-tags nil
   "List of associated tags for creating and removing notes.")
 
