@@ -327,7 +327,7 @@ Must take an optional prompt and a list of files"
   :type 'function)
 
 
-;; WIN grep -irl "Matt 6:26" C:\Users\matth\Dropbox\Org\notes --include=*.org
+;; WIN grep -irl "Matt 6:26" C:/Users/matth/Dropbox/Org/notes --include=*.org
 (defun org-verse--grep-file-list (str)
   "Return a list of files containing regexp STR."
   (let* ((files (if (eq system-type 'windows-nt)
@@ -344,7 +344,7 @@ Must take an optional prompt and a list of files"
                                             " -e "
                                             (shell-quote-argument str)
                                             " "
-                                            org-verse-directory
+                                            (expand-file-name org-verse-directory)
                                             " 2>/dev/null")))))
     (split-string files "\n" t)))
 
@@ -393,19 +393,23 @@ supplied. Can take a PROMPT argument."
 
 ;;;; Backlinks
 
-(defvar org-verse-link-buton-action #'find-file-other-window
+(defvar org-verse-link-button-action #'find-file-other-window
   "Action for `org-verse-link--find-file'.")
+
+;; (defun org-verse-link--find-file (button)
+;;   "Action for BUTTON to `find-file'."
+;;   (funcall org-verse-link-button-action (buffer-substring (button-start button) (button-end button))))
 
 (defun org-verse-link--find-file (button)
   "Action for BUTTON to `find-file'."
-  (funcall org-verse-link-buton-action (buffer-substring (button-start button) (button-end button))))
-
+  (let ((file (button-get button :file)))
+    (when file
+      (funcall org-verse-link-button-action file))))
 
 (define-button-type 'org-verse-link-backlink-button
   'follow-link t
   'action #'org-verse-link--find-file
   'face 'unspecified)
-
 
 (defun org-verse--prepare-backlinks (files)
   "Prepare backlinks' including FILES.
@@ -414,19 +418,22 @@ Use optional TITLE for a prettier heading."
                         (magit-insert-heading
                          (insert (propertize (format "%s\n" "Backlinks") 'face 'magit-section-heading)))
                         (magit-insert-section-body
-                         (mapc (lambda (f)
+                          (mapc (lambda (f)
                                  (insert (propertize  (file-name-nondirectory f) 'face 'italic))
-                                 (make-button (pos-bol) (pos-eol) :type 'org-verse-link-backlink-button)
+                                 (make-button (pos-bol) (pos-eol)
+                                              :type 'org-verse-link-backlink-button
+                                              :file f)
                                  (newline))
                                files))))
+
 
 (defun org-verse--no-backlinks ()
   "No backlinks'."
   (magit-insert-section (backlinks)
-                        (magit-insert-heading
-                         (insert (propertize (format "%s\n" "Backlinks") 'face 'magit-section-heading)))
-                        (magit-insert-section-body
-                         (insert "Pas de références de ce verset."))))
+    (magit-insert-heading
+      (insert (propertize (format "%s\n" "Backlinks") 'face 'magit-section-heading)))
+    (magit-insert-section-body
+      (insert "Pas de références de ce verset."))))
 
 (defun org-verse--prepare-notes ()
   "Prepare notes' including links."
@@ -656,26 +663,22 @@ See `display-buffer-in-side-window' for example options."
       (erase-buffer)
       (visual-line-mode 1)
 
-      (let ((ref (org-verse-serialize book chapter verses))
-            (reference (org-verse-analyse-verses book chapter verses))
+      (let ((reference (org-verse-analyse-verses book chapter verses))
             (inhibit-read-only t))
         (setq org-verse-current-verse refverse) ; for org-capture
         (magit-insert-section (root)
-                              (magit-insert-section (verse)
-                                                    (magit-insert-heading
-                                                     (insert (propertize (format "%s\n" refverse) 'face 'magit-section-heading)))
-                                                    (magit-insert-section-body
-                                                     ;; insert verse
-                                                     ;;(insert (org-verse-db-get-verse (plist-get ref :book) (plist-get ref :chapter) (plist-get ref :verse)))
-                                                     (insert reference)))
-                              (insert "\n\n")
-                              (if-let ((files (org-verse--grep-file-list refverse)))
-                                  (org-verse--prepare-backlinks files)
-                                (org-verse--no-backlinks))
+          (magit-insert-section (verse)
+            (magit-insert-heading
+              (insert (propertize (format "%s\n" refverse) 'face 'magit-section-heading)))
+            (magit-insert-section-body (insert reference)))
+          (insert "\n\n")
+          (if-let ((files (org-verse--grep-file-list refverse)))
+              (org-verse--prepare-backlinks files)
+            (org-verse--no-backlinks))
 
-                              (insert "\n")
-                              (org-verse--prepare-notes)
-                              (insert "\n"))
+          (insert "\n")
+          (org-verse--prepare-notes)
+          (insert "\n"))
 
         (read-only-mode)))
     (goto-char (point-min))))
@@ -719,7 +722,6 @@ See `display-buffer-in-side-window' for example options."
     (make-text-button (match-beginning 0)
                       (match-end 0)
                       :type 'org-verse-button
-                      ;; TODO voir si on peut mettre un 'help-echo avec le verset
                       ;;inserer le titre recuperer plus haut
                       'title title
                       'book book
