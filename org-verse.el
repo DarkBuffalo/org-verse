@@ -48,6 +48,8 @@
 (require 'magit-section)
 (require 'org-verse-retrieve)
 (require 'org)
+(require 'org-element)
+
 
 (defgroup org-verse nil
   "Highlight verse on orgmode file."
@@ -393,18 +395,78 @@ supplied. Can take a PROMPT argument."
 
 ;;;; Backlinks
 
+(defun org-verse--build-backlink-data (files verse-key)
+  "Retourne une liste d'alists contenant :file et :position pour chaque fichier contenant VERSE-KEY."
+  (let ((regexp (regexp-quote verse-key)))
+    (delq nil
+          (mapcar (lambda (f)
+                    (let ((pos (org-verse--find-position-in-file f regexp)))
+                      (when pos
+                        `(:file ,f :position ,pos))))
+                  files))))
+
+(defun org-verse--find-position-in-file (file regexp)
+  "Retourne la position du REGEXP dans FILE, ou nil si non trouvé."
+  (when (file-exists-p file)
+    (with-temp-buffer
+      (insert-file-contents file)
+      (goto-char (point-min))
+      (let ((case-fold-search t))
+        (when (re-search-forward regexp nil t)
+          (match-beginning 0))))))
+
+(defun org-verse--get-headline-at-pos (file pos)
+  "Retourne le titre Org (headline) à la position POS dans le fichier FILE.
+Si aucun titre n'est trouvé  cette position, retourne nil."
+  (when (and (stringp file)
+             (file-readable-p file)
+             (number-or-marker-p pos))
+    (with-temp-buffer
+      (insert-file-contents file)
+      (org-mode)
+      (goto-char (min pos (point-max))) ;; scurise si pos > fichier
+      (require 'org-element)
+      (let ((element (org-element-at-point)))
+        ;; remonter jusqu'à un headline si nécessaire
+        (while (and element
+                    (not (eq (org-element-type element) 'headline)))
+          (setq element (org-element-property :parent element)))
+        (when (and element (eq (org-element-type element) 'headline))
+          (let ((title (org-element-property :raw-value element)))
+            (when (stringp title)
+              title)))))))
+
+
+(defun org-verse--get-org-title (file)
+  "Retourne le contenu de #+TITLE: dans FILE, ou nil si absent."
+  (when (file-exists-p file)
+    (with-temp-buffer
+      (insert-file-contents file)
+      (goto-char (point-min))
+      (when (re-search-forward "^#\\+TITLE:[ \t]*\\(.*\\)$" nil t)
+        (string-trim (match-string 1))))))
+
+
 (defvar org-verse-link-button-action #'find-file-other-window
   "Action for `org-verse-link--find-file'.")
 
-;; (defun org-verse-link--find-file (button)
-;;   "Action for BUTTON to `find-file'."
-;;   (funcall org-verse-link-button-action (buffer-substring (button-start button) (button-end button))))
 
 (defun org-verse-link--find-file (button)
-  "Action for BUTTON to `find-file'."
-  (let ((file (button-get button :file)))
-    (when file
-      (funcall org-verse-link-button-action file))))
+  "Ouvre le fichier à la position donne dans une autre fenètre depuis BUTTON.
+Déplie le contexte Org si nécessaire."
+  (let ((file (button-get button :file))
+        (pos (button-get button :position)))
+    (when (and file (file-exists-p file))
+      (let ((win (display-buffer (find-file-noselect file))))
+        (with-selected-window win
+          (goto-char (min (or pos (point-min)) (point-max)))
+          (when (derived-mode-p 'org-mode)
+            ;; Déplier et afficher la section au bon endroit
+            (org-fold-show-entry)
+            (org-fold-show-subtree)
+            (org-reveal)))))))
+
+
 
 (define-button-type 'org-verse-link-backlink-button
   'follow-link t
@@ -419,12 +481,20 @@ Use optional TITLE for a prettier heading."
                          (insert (propertize (format "%s\n" "Backlinks") 'face 'magit-section-heading)))
                         (magit-insert-section-body
                           (mapc (lambda (f)
-                                 (insert (propertize  (file-name-nondirectory f) 'face 'italic))
-                                 (make-button (pos-bol) (pos-eol)
-                                              :type 'org-verse-link-backlink-button
-                                              :file f)
-                                 (newline))
-                               files))))
+                                  (let* ((file (plist-get f :file))
+                                         (pos (plist-get f :position))
+                                         (name (file-name-nondirectory file))
+                                         (title (org-verse--get-org-title file))
+                                         (headline (org-verse--get-headline-at-pos file pos))
+                                         (label (or headline title name)))
+                                    (insert (propertize label 'face 'italic))
+                                    (make-button (pos-bol) (pos-eol)
+                                                 :type 'org-verse-link-backlink-button
+                                                 :file file
+                                                 :position pos
+                                                 :help-echo name)
+                                    (newline)))
+                                files))))
 
 
 (defun org-verse--no-backlinks ()
@@ -672,9 +742,13 @@ See `display-buffer-in-side-window' for example options."
               (insert (propertize (format "%s\n" refverse) 'face 'magit-section-heading)))
             (magit-insert-section-body (insert reference)))
           (insert "\n\n")
-          (if-let ((files (org-verse--grep-file-list refverse)))
-              (org-verse--prepare-backlinks files)
-            (org-verse--no-backlinks))
+          ;; Lister les fichiers avec les position de la référence
+          (let* ((files (org-verse--grep-file-list refverse))
+                 (backlinks (org-verse--build-backlink-data files refverse)))
+            (if backlinks
+                (org-verse--prepare-backlinks backlinks)
+              (org-verse--no-backlinks)))
+
 
           (insert "\n")
           (org-verse--prepare-notes)
