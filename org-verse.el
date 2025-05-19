@@ -395,6 +395,14 @@ supplied. Can take a PROMPT argument."
 
 ;;;; Backlinks
 
+(defun org-verse--truncate-headline (text &optional max-length)
+  "Tronque TEXT  MAX-LENGTH caractres (par dfaut 80).
+Ajoute   la fin si tronqué. Ne fait rien si TEXT est nil."
+  (let ((max (or max-length 80)))
+    (if (and text (> (length text) max))
+        (concat (substring text 0 (- max 1)) "\u2026")
+      text)))
+
 (defun org-verse--build-backlink-data (files verse-key)
   "Retourne une liste d'alists contenant :file et :position pour chaque fichier contenant VERSE-KEY."
   (let ((regexp (regexp-quote verse-key)))
@@ -486,7 +494,7 @@ Use optional TITLE for a prettier heading."
                                          (name (file-name-nondirectory file))
                                          (title (org-verse--get-org-title file))
                                          (headline (org-verse--get-headline-at-pos file pos))
-                                         (label (or headline title name)))
+                                         (label (org-verse--truncate-headline (or headline title name))))
                                     (insert (propertize label 'face 'italic))
                                     (make-button (pos-bol) (pos-eol)
                                                  :type 'org-verse-link-backlink-button
