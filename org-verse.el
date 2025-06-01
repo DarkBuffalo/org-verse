@@ -2,7 +2,7 @@
 ;; Author: Matthias David
 
 ;; Version: 0.0.2
-;; Package-Requires: ((emacs "27.1")(dash)(anaphora)(esqlite)(s)(db)(doct)(magit-section))
+;; Package-Requires: ((emacs "27.1")(dash)(anaphora)(esqlite)(s)(db)(doct)(magit-section)(transient))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -960,6 +960,8 @@ See `display-buffer-in-side-window' for example options."
 
 
 
+
+
 ;;; EXPORT
 ;; (defun org-verse--find-book (name)
 ;;   "Trouve un livre dans `org-verse--canon` à partir du nom `name`, en testant les patterns."
@@ -1020,6 +1022,7 @@ See `display-buffer-in-side-window' for example options."
 
 (cl-eval-when (load eval)
   (require 'org-verse-capture)
+  (require 'org-verse-sidebar)
   (require 'org-verse-db)
   ;;(require 'org-verse-retrieve)
   (require 'org-verse-note)
